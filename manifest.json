@@ -1,0 +1,16 @@
+{
+    "manifest_version": 2,
+    "name": "RSS",
+    "version": "1.0",
+
+    "browser_action": {
+        // "default_icon": {
+        //     "19": "",
+        //     "38": ""
+        // },
+
+        "default_popup": "popup.html"
+    },
+
+    "permissions": ["*://*/*"]
+}
