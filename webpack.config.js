@@ -5,6 +5,7 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 var SRC_PARH = 'src';
 var OUTPUT_PATH = 'output';
+
 var abs = function (p) {
     return path.join(__dirname, p);
 };
@@ -29,6 +30,14 @@ module.exports = {
             {
                 test: /\.less$/,
                 loader: 'less!style!css'
+            },
+            {
+                test: /\.(eot|woff|woff2|ttf|svg)([a-z0-9\?#]+)?$/,
+                loader: 'file-loader'
+            },
+            {
+                test: /\.(jpe?g|png)$/,
+                loader: 'file-loader'
             },
             {
                 test: /\.vue$/,
