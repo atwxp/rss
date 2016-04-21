@@ -32,7 +32,7 @@
             color: #999;
             .date,
             .cat {
-                margin-left: 20px;
+                margin-left: 10px;
             }
         }
 

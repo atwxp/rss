@@ -4,9 +4,6 @@
 
             <ul class="nav">
                 <li>
-                    <nav-item path="/home" icon="home" text="全部"></nav-item>
-                </li>
-                <li>
                     <nav-item path="/starred" icon="starred" text="已加星标"></nav-item>
                 </li>
                 <li>
@@ -21,11 +18,17 @@
             </ul>
 
             <div class="rss">
-                <p class="headline"><span>订阅源</span></p>
+                <p class="headline">
+                    <span class="text">
+                        <i class="icon-home"></i>
+                        订阅源
+                    </span>
+                    <span class="action" v-on:click="edit=!edit"><i class="icon-setting"></i></span>
+                </p>
 
-                <ul>
+                <ul v-bind:class="edit ? 'edit' : ''">
                     <li v-for="f in feeds">
-                        <nav-item :path="'/feed/' + f.id" :text="f.title"></nav-item>
+                        <nav-item :path="'/feed/' + f.id" :text="f.title" del="true" v-on:do-del="doDel(f.id)"></nav-item>
                     </li>
                 </ul>
             </div>
@@ -43,7 +46,8 @@
     module.exports = {
         data: function () {
             return {
-                feeds: []
+                feeds: [],
+                edit: false
             };
         },
 
@@ -55,9 +59,28 @@
             'nav-item': require('./components/nav-item.vue')
         },
 
+        methods: {
+            doDel: function (id) {
+                for (var i = 0, len = this.feeds.length; i < len; i++) {
+
+                    if (this.feeds[i].id === id) {
+                        break;
+                    }
+                }
+
+                localStorage.remove(id);
+
+                this.feeds.splice(i, 1);
+
+                this.$emit('change-feed', this.feeds)
+            }
+        },
+
         events: {
-            'feeds-change': function (feeds) {
+            'change-feed': function (feeds) {
                 this.feeds = feeds;
+
+                localStorage.set('feeds', feeds);
             }
         }
     };
@@ -150,8 +173,11 @@
         bottom: 0;
         width: 240px;
         padding: 10px 0;
+        overflow-y: auto;
         background-color: #E8E8E8;
+
         .nav-item {
+            position: relative;
             display: block;
             padding: 0 10px 0 20px;
             height: 30px;
@@ -165,6 +191,19 @@
                 background-color: rgba(205, 205, 205, 0.43);
                 color: #333;
             }
+            .del {
+                position: absolute;
+                right: 10px;
+                top: 4px;
+                width: 20px;
+                text-align: center;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity .4s;
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
         }
 
         .rss {
@@ -172,10 +211,19 @@
                 height: 40px;
                 line-height: 40px;
                 margin-left: 20px;
-                span {
+                .text {
                     background-color: #E8E8E8;
                     padding-right: 4px;
                 }
+
+                .action {
+                    position: relative;
+                    float: right;
+                    padding: 0 8px 0 4px;
+                    background-color: #e8e8e8;
+                    cursor: pointer;
+                }
+
                 &::after {
                     content: '';
                     float: left;
@@ -183,6 +231,15 @@
                     height: 1px;
                     background-color: #ccc;
                     margin-top: -20px;
+                }
+            }
+        }
+
+        .edit {
+            .nav-item {
+                .del {
+                    opacity: 1;
+                    visibility: visible;
                 }
             }
         }

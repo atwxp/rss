@@ -51,10 +51,6 @@ define(function (require, exports, module) {
         });
     };
 
-    var some = function (obj, method) {
-
-    };
-
     var clone = map;
 
     var extend = function (target, source, alone) {
@@ -133,7 +129,6 @@ define(function (require, exports, module) {
         extend: extend,
         filter: filter,
         clone: clone,
-        some: some,
         type: type,
         gid: gid,
         map: map

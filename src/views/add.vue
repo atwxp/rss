@@ -2,22 +2,24 @@
     <div class="manage">
         <div class="add-rss">
             <input type="text" name="feed" v-model="feed" placeholder="输入要订阅的RSS源">
-            <button type="button" v-on:click="addRSS">添加订阅</button>
+            
+            <div class="operation">
+                <button type="button" class="button add" v-on:click="addRSS">添加订阅</button>
+
+                <button type="button" class="button export" v-on:click="exportOPML">一键导出</button>
+
+                <div class="button import">
+                    <input type="file" name="opml" v-on:change="importOPML">
+                    <span class="text">导入opml文件</span>
+                </div>
+            </div>
         </div>
 
-        <div class="rss-list">
-            <ul>
-                <li v-for="r in feeds" v-on:mouseenter="toggleShow(true, $event)" v-on:mouseleave="toggleShow(false, $event)">
-                    <a href="{{r.link}}" target="_blank">{{r.title}}</a>
-                    <p class="desc">{{r.description}}</p>
-                    <i class="close" v-on:click="removeFeed(r.id)"></i>
-                </li>
-            </ul>
-        </div>
     </div>
 </template>
 
 <script>
+    // http://blog.csdn.net/oscar999/article/details/16342699
     var util = require('../util/index');
     var localStorage = require('../util/localstorage');
 
@@ -37,14 +39,6 @@
             };
         },
 
-        watch: {
-            feeds: function (v) {
-                this.$dispatch('feeds-change', v);
-
-                localStorage.set('feeds', v);
-            }
-        },
-
         methods: {
             toggleShow: function (show, e) {
                 e.currentTarget.classList[show ? 'add' : 'remove']('show');
@@ -62,23 +56,13 @@
                 }
 
                 // 检测是否已经添加feed
-                // 目前只是判断是否输入相同的url，类似 http://baidu.com, baidu.com 没有做判断
-                // 即仅支持精确匹配，不支持模糊匹配
-                util.forEach(this.feeds, function (f) {
-                    if (f.feed === feed) {
-                        alert('已添加过该Feed');
-
-                        return;
-                    }
+                var hasAdded = this.feeds.some(function (f) {
+                    return f.feed === feed;
                 });
-
-                // var hasAdded = this.feeds.some(function (f) {
-                //     return f.feed === feed;
-                // });
-                // if (hasAdded) {
-                //     alert('已添加过该Feed');
-                //     return;
-                // }
+                if (hasAdded) {
+                    alert('已添加过该Feed');
+                    return;
+                }
 
                 // ajax 获取该feed内容
                 this.$http.get(feed).then(function (res) {
@@ -107,29 +91,49 @@
                         description: rss.description
                     });
 
-                    this.feeds.push(newRss);
+                    this.feeds.unshift(newRss);
 
-                    // 现在这里cache还是在点击订阅源时候再发一次请求那时在cache呢？
                     localStorage.set(newRss.id, {
                         items: rss.items,
                         _t: +new Date()
                     });
 
+                    this.$dispatch('change-feed', this.feeds);
+
                     this.feed = '';
+
+                    alert('订阅成功');
                 });
             },
 
-            removeFeed: function (id) {
-                for (var i = 0, len = this.feeds.length; i < len; i++) {
+            exportOPML: function () {
+                var opml = ''
+                    + '<?xml version="1.0" encoding="UTF-8"?>'
+                    +     '<opml version="1.0">'
+                    +         '<head><title>RSS List</title></head>'
+                    +         '<body><outline>';
 
-                    if (this.feeds[i].id === id) {
-                        break;
-                    }
-                }
+                var outline = '';
 
-                localStorage.remove(id);
+                util.forEach(this.feeds, function (f) {
+                    outline += ''
+                        + '<outline text="' + f.title + '" '
+                        +     'title="' + f.title + '" type="rss" '
+                        +     'xmlUrl="' + f.feed + '" '
+                        +     'htmlUrl="' + f.link + '">'
+                        + '</outline>';
+                });
 
-                this.feeds.splice(i, 1);
+                opml += outline + '</outline></body></opml>';
+
+                var a = document.createElement('a');
+                a.download = 'rss.opml';
+                a.href = 'data:text/xml;charset=utf-8,' + opml;
+                a.click();
+            },
+
+            importOPML: function () {
+
             }
         }
     };
@@ -137,67 +141,76 @@
 
 <style lang="less">
     .manage {
-        width: 50%;
+        .button {
+            display: inline-block;
+            height: 30px;
+            line-height: 30px;
+            margin-right: 10px;
+            padding: 0 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #5EA2DB;
+            cursor: pointer;
+            color: #fff;
+            &:hover,
+            &:focus,
+            &:active {
+                background-color: #5493C8;
+            }
+        }
 
         .add-rss {
             input {
-                width: 100%;
+                width: 60%;
                 height: 36px;
+                margin-right: 10px;
                 padding: 0 8px;
-                margin-bottom: 16px;
                 border: 1px solid #ccc;
+
                 -webkit-box-sizing: border-box;
                 box-sizing: border-box;
+
                 font-size: 14px;
                 &:focus {
 
                 }
             }
-            button {
-                display: block;
-                height: 34px;
-                width: 120px;
-                border-radius: 4px;
-                background-color: #5EA2DB;
-                border: none;
-                color: #fff;
-                cursor: pointer;
+        }
+
+        .operation {
+            margin-top: 16px;
+
+            .add {
+
+            }
+
+            .export {
+                background-color: #6BD2A2;
                 &:hover,
                 &:focus,
                 &:active {
-                    background-color: #5493C8;
+                    background-color: #41AA79;
                 }
             }
-        }
-        .rss-list {
-            color: #ccc;
 
-            li {
+            .import {
                 position: relative;
-                margin: 10px 0;
-                font-size: 13px;
-                &.show {
-                    .close {
-                        display: block;
-                    }
+                background-color: #6BD2A2;
+                vertical-align: middle;
+                &:hover,
+                &:focus,
+                &:active {
+                    background-color: #41AA79;
                 }
-            }
-
-            .desc {
-                color: #666;
-            }
-
-            .close {
-                display: none;
-                position: absolute;
-                right: 20px;
-                top: 0;
-                width: 20px;
-                height: 20px;
-                background: url(../assets/images/close.png) no-repeat center;
-                -webkit-background-size: 50% 50%;
-                background-size: 50% 50%;
-                cursor: pointer;
+                input {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    height: 100%;
+                    opacity: 0;
+                    cursor: pointer;
+                }
             }
         }
     }

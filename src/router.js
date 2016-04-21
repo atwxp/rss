@@ -2,12 +2,6 @@ define(function (require, exports, module) {
 
     var routerMap = function (router) {
         router.map({
-            '/': {
-                component: require('./views/home.vue')
-            },
-            '/home': {
-                component: require('./views/home.vue')
-            },
             '/add': {
                 component: require('./views/add.vue')  
             },
