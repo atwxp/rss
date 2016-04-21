@@ -1,92 +1,66 @@
 <template>
     <div class="app">
-        <section class="nav">
+        <section class="sidebar">
 
-            <ul class="normal">
-                <li class="icon-{{n.icon}}" v-for="n in nav" v-on:click="view=n.view">
-                    <span class="text">{{n.text}}</span>
+            <ul class="nav">
+                <li>
+                    <nav-item path="/home" icon="home" text="全部"></nav-item>
+                </li>
+                <li>
+                    <nav-item path="/starred" icon="starred" text="已加星标"></nav-item>
+                </li>
+                <li>
+                    <nav-item path="/search" icon="search" text="搜索"></nav-item>
+                </li>
+                <li>
+                    <nav-item path="/add" icon="add" text="添加订阅"></nav-item>
+                </li>
+                <li>
+                    <nav-item path="/setting" icon="setting" text="设置"></nav-item>
                 </li>
             </ul>
 
-            <div class="rss-list">
+            <div class="rss">
                 <p class="headline"><span>订阅源</span></p>
+
                 <ul>
-                    <li v-for="f in feeds" v-on:click="loadFeed(f.feed)">{{f.title}}</li>
+                    <li v-for="f in feeds">
+                        <nav-item :path="'/feed/' + f.id" :text="f.title"></nav-item>
+                    </li>
                 </ul>
             </div>
         </section>
         
         <section class="main">
-            <component :is="view" :feeds.sync="feeds"></component>
+            <router-view></router-view>
         </section>
     </div>
 </template>
 
 <script>
-var localStorage = require('./util/localstorage');
+    var localStorage = require('./util/localstorage');
 
-module.exports = {
-    data: function () {
-        return {
-            nav: [
-                {
-                    icon: 'feed',
-                    text: '全部',
-                    view: 'all'
-                },
-                {
-                    icon: 'bookmark',
-                    text: '已加星标',
-                    view: 'starred'
-                },
-                {
-                    icon: 'search',
-                    text: '搜索',
-                    view: 'search'
-                },
-                {
-                    icon: 'add',
-                    text: '添加订阅',
-                    view: 'add'
-                },
-                {
-                    icon: 'setting',
-                    text: '设置',
-                    view: 'setting'
-                }
-            ],
+    module.exports = {
+        data: function () {
+            return {
+                feeds: []
+            };
+        },
 
-            view: 'all',
+        ready: function () {
+            this.feeds = localStorage.get('feeds') || [];
+        },
 
-            feeds: []
-        };
-    },
+        components: {
+            'nav-item': require('./components/nav-item.vue')
+        },
 
-    watch: {
-        feeds: function () {
-            localStorage.set('rss', this.feeds);
+        events: {
+            'feeds-change': function (feeds) {
+                this.feeds = feeds;
+            }
         }
-    },
-
-    methods: {
-        loadFeed: function (feed) {
-
-        }
-    },
-
-    components: {
-        all: require('./components/all.vue'),
-        add: require('./components/add.vue'),
-        starred: require('./components/starred.vue'),
-        search: require('./components/search.vue'),
-        setting: require('./components/setting.vue'),
-        feed: require('./components/feed.vue')
-    },
-
-    compiled: function () {
-        this.feeds = localStorage.get('rss') || [];
-    }
-}; 
+    };
 </script>
 
 <style lang="less">
@@ -103,7 +77,11 @@ module.exports = {
     }
 
     a {
+        color: #2080b8;
         text-decoration: none;
+        &:hover {
+            color: #b82020;
+        }
     }
 
     input {
@@ -117,11 +95,11 @@ module.exports = {
 
     @font-face {
         font-family: 'icomoon';
-        src: url('fonts/icomoon.eot?8pbdmf');
-        src: url('fonts/icomoon.eot?8pbdmf#iefix') format('embedded-opentype'),
-            url('fonts/icomoon.ttf?8pbdmf') format('truetype'),
-            url('fonts/icomoon.woff?8pbdmf') format('woff'),
-            url('fonts/icomoon.svg?8pbdmf#icomoon') format('svg');
+        src: url('assets/fonts/icomoon.eot?8pbdmf');
+        src: url('assets/fonts/icomoon.eot?8pbdmf#iefix') format('embedded-opentype'),
+            url('assets/fonts/icomoon.ttf?8pbdmf') format('truetype'),
+            url('assets/fonts/icomoon.woff?8pbdmf') format('woff'),
+            url('assets/fonts/icomoon.svg?8pbdmf#icomoon') format('svg');
         font-weight: normal;
         font-style: normal;
     }
@@ -146,22 +124,26 @@ module.exports = {
     .icon-setting:before {
         content: '\e901';
     }
-    .icon-bookmark:before {
+    .icon-starred:before {
         content: '\e902';
     }
     .icon-add:before {
         content: '\e903';
     }
-    .icon-feed:before {
+    .icon-home:before {
         content: '\e904';
     }
 
     body {
-        font: 14px/1.5 Arial, sans-serif;
+        font: 14px/1.5 "Avenir Next", Helvetica, Arial, "Lantinghei SC", "Microsoft YaHei", sans-serif;
         color: #696969;
     }
 
-    .nav {
+    .app {
+        overflow-x: hidden;
+    }
+
+    .sidebar {
         position: fixed;
         left: 0;
         top: 0;
@@ -169,21 +151,23 @@ module.exports = {
         width: 240px;
         padding: 10px 0;
         background-color: #E8E8E8;
-        li {
+        .nav-item {
+            display: block;
             padding: 0 10px 0 20px;
             height: 30px;
             line-height: 30px;
             -webkit-transition: background-color .3s;
             transition: background-color .3s;
             font-size: 13px;
-            cursor: pointer;
+            color: #696969;
+            &.active,
             &:hover {
                 background-color: rgba(205, 205, 205, 0.43);
                 color: #333;
             }
         }
 
-        .rss-list {
+        .rss {
             .headline {
                 height: 40px;
                 line-height: 40px;
@@ -201,16 +185,19 @@ module.exports = {
                     margin-top: -20px;
                 }
             }
-
-            li {
-
-            }
         }
     }
 
     .main {
-        margin-left: 280px;
+        max-width: 800px;
+        margin: 0 auto;
         padding: 20px 0 20px;
         background: #fff;
+    }
+
+    @media (max-width: 1360px) {
+        .main {
+            margin-left: 280px;
+        }
     }
 </style>

@@ -1,5 +1,5 @@
 <template>
-    hello Settings
+    hello home all feed
 </template>
 
 <script>

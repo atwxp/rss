@@ -1,15 +1,11 @@
 <template>
-    <div class="feed-list">
-        <ul>
-            <li></li>
-        </ul>
-    </div>
+    <input type="text" name="search" v-model="search">
 </template>
 
 <script>
     module.exports = {
         data: function () {
-            return {};
+            return {}
         }
     };
 </script>

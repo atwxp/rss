@@ -1,16 +1,16 @@
 <template>
     <div class="manage">
         <div class="add-rss">
-            <input type="text" name="feed" placeholder="输入要订阅的RSS源" v-model="feed">
+            <input type="text" name="feed" v-model="feed" placeholder="输入要订阅的RSS源">
             <button type="button" v-on:click="addRSS">添加订阅</button>
         </div>
 
         <div class="rss-list">
             <ul>
                 <li v-for="r in feeds" v-on:mouseenter="toggleShow(true, $event)" v-on:mouseleave="toggleShow(false, $event)">
-                    <a href="{{r.url}}" target="_blank">{{r.title}}</a>
-                    <p class="desc">{{r.desc}}</p>
-                    <i class="close" v-on:click="removeFeed($index)"></i>
+                    <a href="{{r.link}}" target="_blank">{{r.title}}</a>
+                    <p class="desc">{{r.description}}</p>
+                    <i class="close" v-on:click="removeFeed(r.id)"></i>
                 </li>
             </ul>
         </div>
@@ -19,14 +19,30 @@
 
 <script>
     var util = require('../util/index');
+    var localStorage = require('../util/localstorage');
 
     module.exports = {
-        props: ['feeds'],
+        route: {
+            data: function (transition) {
+                transition.next({
+                    feeds: localStorage.get('feeds') || []
+                });
+            }
+        },
 
         data: function () {
             return {
-                feed: ''
+                feed: '',
+                feeds: []
             };
+        },
+
+        watch: {
+            feeds: function (v) {
+                this.$dispatch('feeds-change', v);
+
+                localStorage.set('feeds', v);
+            }
         },
 
         methods: {
@@ -45,7 +61,10 @@
                     return;
                 }
 
-                this.feeds.forEach(function (f) {
+                // 检测是否已经添加feed
+                // 目前只是判断是否输入相同的url，类似 http://baidu.com, baidu.com 没有做判断
+                // 即仅支持精确匹配，不支持模糊匹配
+                util.forEach(this.feeds, function (f) {
                     if (f.feed === feed) {
                         alert('已添加过该Feed');
 
@@ -53,28 +72,63 @@
                     }
                 });
 
+                // var hasAdded = this.feeds.some(function (f) {
+                //     return f.feed === feed;
+                // });
+                // if (hasAdded) {
+                //     alert('已添加过该Feed');
+                //     return;
+                // }
+
+                // ajax 获取该feed内容
                 this.$http.get(feed).then(function (res) {
+
                     if (!res.ok) {
                         console.log('request not valid');
+
                         return;
                     }
 
-                    var meta = util.parseRSSMeta(res.data);
+                    var rss = util.parseRSS(res.data);
 
-                    if (!meta) {
+                    if (!rss) {
+
                         console.log('RSS struct not valid');
+
                         return;
                     }
 
-                    this.feeds.push(util.extend({
+                    var newRss = util.extend({
+                        id: util.gid(),
                         feed: feed
-                    }, meta));
+                    }, {
+                        link: rss.link,
+                        title: rss.title,
+                        description: rss.description
+                    });
+
+                    this.feeds.push(newRss);
+
+                    // 现在这里cache还是在点击订阅源时候再发一次请求那时在cache呢？
+                    localStorage.set(newRss.id, {
+                        items: rss.items,
+                        _t: +new Date()
+                    });
 
                     this.feed = '';
                 });
             },
 
-            removeFeed: function (i) {
+            removeFeed: function (id) {
+                for (var i = 0, len = this.feeds.length; i < len; i++) {
+
+                    if (this.feeds[i].id === id) {
+                        break;
+                    }
+                }
+
+                localStorage.remove(id);
+
                 this.feeds.splice(i, 1);
             }
         }
@@ -140,7 +194,7 @@
                 top: 0;
                 width: 20px;
                 height: 20px;
-                background: url(../images/close.png) no-repeat center;
+                background: url(../assets/images/close.png) no-repeat center;
                 -webkit-background-size: 50% 50%;
                 background-size: 50% 50%;
                 cursor: pointer;
