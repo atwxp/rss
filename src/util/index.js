@@ -1,7 +1,7 @@
 define(function (require, exports, module) {
 
     var type = function (o) {
-        return Object.prototype.toString.call(o);
+        return Object.prototype.toString.call(o).slice(8, -1).toLowerCase();
     };
 
     var gid = function () {
@@ -11,7 +11,7 @@ define(function (require, exports, module) {
     };
 
     var forEach = function (obj, method) {
-        if (type(obj) === '[Object Array]') {
+        if (type(obj) === 'array') {
             for (var i = 0, l = obj.length; i < l; i++) {
                 if (method.call(this, obj[i], i) === false) {
                     break;
@@ -81,6 +81,7 @@ define(function (require, exports, module) {
             node = node[node.length === 1 ? 0 : 1];
 
             var n = parent.getElementsByTagNameNS(ns, node);
+
             ret[node] = n && n[0] && n[0].textContent;
         });
 
@@ -110,13 +111,17 @@ define(function (require, exports, module) {
             }
         });
 
-        var link = channel.getElementsByTagName('link');
-
         var rss = extend({items: []}, getNodeContent(channel, ['title', 'link', 'description'], ns));
 
         var items = channel.getElementsByTagName('item');
         forEach(items, function (item) {
-            rss.items.push(getNodeContent(item, ['title', 'link', 'pubDate', 'description', 'dc:creator', 'content:encoded'], ns));
+            rss.items.push(
+                getNodeContent(
+                    item,
+                    ['title', 'link', 'pubDate', 'description', 'dc:creator', 'content:encoded'],
+                    ns
+                )
+            );
         });
 
         return rss;

@@ -4,12 +4,6 @@
 
             <ul class="nav">
                 <li>
-                    <nav-item path="/starred" icon="starred" text="已加星标"></nav-item>
-                </li>
-                <li>
-                    <nav-item path="/search" icon="search" text="搜索"></nav-item>
-                </li>
-                <li>
                     <nav-item path="/add" icon="add" text="添加订阅"></nav-item>
                 </li>
                 <li>
@@ -19,10 +13,7 @@
 
             <div class="rss">
                 <p class="headline">
-                    <span class="text">
-                        <i class="icon-home"></i>
-                        订阅源
-                    </span>
+                    <span class="text"><i class="icon-home"></i>订阅源</span>
                     <span class="action" v-on:click="edit=!edit"><i class="icon-setting"></i></span>
                 </p>
 
@@ -155,6 +146,16 @@
     }
     .icon-home:before {
         content: '\e904';
+    }
+
+    pre {
+        background-color: #000;
+        width: 90%;
+        margin: 1em auto;
+        padding: 1em;
+        white-space: pre-wrap;
+        border-radius: 5px;
+        color: #fff;
     }
 
     body {

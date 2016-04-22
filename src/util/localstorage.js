@@ -1,7 +1,23 @@
 define(function (require, exports, module) {
-    var localStorage = window.localStorage;
 
-    var support = !!(localStorage && localStorage.setItem);
+    var util = require('./index');
+
+    var storage = window.localStorage;
+
+    // feature detect
+    var support = !!(storage && storage.setItem);
+
+    // ios 无痕浏览, localStorage可以读, 但是不可以写&删除
+    var available = (function () {
+        try {
+            storage.setItem('_t', ' ');
+        }
+        catch (e) {
+            return false;
+        }
+
+        return true;
+    })();
 
     var parse = function (str) {
         try {
@@ -13,12 +29,17 @@ define(function (require, exports, module) {
     };
 
     var set = function (key, value) {
-        if (!support) {
+        if (!support || !available) {
+            return;
+        }
+
+        if (!/object|array|string/.test(util.type(value))) {
+            throw new Error('`' + value + '` is not the valid value, only support String or Object or Array');
             return;
         }
 
         try {
-            localStorage.setItem(key, JSON.stringify(value));
+            storage.setItem(key, JSON.stringify(value));
         }
 
         catch (e) {
@@ -27,25 +48,38 @@ define(function (require, exports, module) {
     };
 
     var get = function (key) {
-        // null/string
-        var v = localStorage.getItem(key);
+        if (!support) {
+            return;
+        }
+
+        // null || string
+        var v = storage.getItem(key);
 
         return parse(v);
     };
 
     var remove = function (key) {
-        localStorage.removeItem(key);
+
+        if (!support || !available) {
+            return;
+        }
+
+        storage.removeItem(key);
     };
 
     var clear = function () {
-        localStorage.clear();
+        if (!support || !available) {
+            return;
+        }
+
+        storage.clear();
     };
 
     var getAll = function () {
         var ret = {};
 
-        for (var i = 0, len = localStorage.length; i < len; i++) {
-            var k = localStorage[i];
+        for (var i = 0, len = storage.length; i < len; i++) {
+            var k = storage[i];
 
             ret[k] = getItem(k);
         }

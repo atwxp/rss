@@ -2,14 +2,14 @@ define(function (require, exports, module) {
 
     var routerMap = function (router) {
         router.map({
+            '*': {
+                component: require('./views/add.vue')
+            },
+            '/': {
+                component: require('./views/add.vue')
+            },
             '/add': {
                 component: require('./views/add.vue')  
-            },
-            '/search': {
-                component: require('./views/search.vue')  
-            },
-            '/starred': {
-                component: require('./views/starred.vue')
             },
             '/setting': {
                 component: require('./views/setting.vue')
@@ -29,6 +29,9 @@ define(function (require, exports, module) {
         });
 
         router.afterEach(function (transition) {
+
+            window.scrollTo(0, 1);
+
             console.log('成功浏览到：' + transition.to.path);
         });
     };

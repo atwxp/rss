@@ -1,22 +1,22 @@
 <template>
-    <article v-for="r in rss" class="rss">        
-        <h2 class="title"><a href="{{r.link}}" target="_blank">{{r.title}}</a></h2>
+    <article class="rss">
+        <h2 class="title"><a href="{{rss.link}}" target="_blank">{{rss.title}}</a></h2>
 
         <p class="meta">
-           <span class="author">{{r.creator}}</span>
-           <span class="date">{{r.pubDate|normalizeDate|formatDate 'yyyy-MM-dd'}}</span>
+           <span class="author">{{rss.creator}}</span>
+           <span class="date">{{rss.pubDate|normalizeDate|formatDate 'yyyy-MM-dd'}}</span>
            <span class="cat"></span>
         </p>
 
-        <div class="content" v-if="r.encoded">{{{r.encoded}}}</div>
-        <div class="desc" v-if="!r.encoded">{{{r.description}}}</div>
+        <div class="content" v-if="rss.encoded">{{{rss.encoded}}}</div>
+        <div class="desc" v-if="!rss.encoded">{{{rss.description}}}</div>
     </article>
 </template>
 
 <script>
     module.exports = {
         props: {
-            rss: []
+            rss: {}
         }
     };
 </script>

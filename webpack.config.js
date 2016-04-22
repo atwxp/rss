@@ -17,7 +17,9 @@ module.exports = {
 
     output: {
         path: abs(OUTPUT_PATH),
+
         filename: 'index.js',
+
         publicPath: '/output/'
     },
 

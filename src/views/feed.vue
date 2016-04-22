@@ -1,5 +1,9 @@
-<template>
-    <feed-item :rss="rss"></feed-item>
+ <template>
+    <div>
+        <feed-item v-for="r in rss" :rss="r"></feed-item>
+    </div>
+
+    <v-pager :total-page="totalPage" :cur-page="1"></v-pager>
 </template>
 
 <script>
@@ -13,7 +17,7 @@
                 var expiryTime = localStorage.get('expired') || 1;
 
                 // 每页数量
-                var pageNum = localStorage.get('pageNum') || 5;
+                var perPage = localStorage.get('perPage') || 5;
 
                 // feeds数据库
                 var feeds = localStorage.get('feeds') || [];
@@ -29,14 +33,21 @@
                     return;
                 }
 
-                var cacheRSS = localStorage.get(fd.id);
+                this.$set('perPage', perPage);
+
+                var cached = localStorage.get(fd.id);
 
                 // 如果有缓存的rss，并且没有过期
                 if (
-                    cacheRSS
-                    && expiryTime * 24 * 60 * 60 + cacheRSS._t > +new Date()
+                    cached
+                    && expiryTime * 24 * 60 * 60 * 1000 + cached._t > +new Date()
                 ) {
-                    this.$set('rss', cacheRSS.items.slice(0, pageNum));
+
+                    transition.next({
+                        cacheRss: cached.items,
+                        rss: cached.items.slice(0, perPage),
+                        totalPage: Math.ceil(cached.items.length / perPage)
+                    });
 
                     return;
                 }
@@ -62,19 +73,37 @@
                             _t: +new Date()
                         });
 
-                        this.$set('rss', rss.items.slice(0, pageNum));
+                        this.$set('cacheRss', rss.items);
+
+                        this.$set('rss', rss.items.slice(0, perPage));
+
+                        this.$set('totalPage', Math.ceil(rss.items.length / perPage));
                     });
             }
         },
 
         data: function () {
             return {
+                cacheRss: [],
+                totalPage: 0,
+                perPage: 1,
                 rss: []
             };
         },
 
+        events: {
+            'change-pager': function (curPage) {
+
+                this.rss = this.cacheRss.slice((curPage - 1) * this.perPage, curPage * this.perPage);
+
+                window.scrollTo(0, 1);
+            }
+        },
+
         components: {
-            'feed-item': require('../components/feed-item.vue')
+            'feed-item': require('../components/feed-item.vue'),
+            'v-pager': require('../components/v-pager.vue')
         }
     };
 </script>
+
