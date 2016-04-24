@@ -8,17 +8,19 @@ define(function (require, exports, module) {
          *     - pattern match: EEE, d+ MMM YYYY HH:mm:ss \+\d(4)
          */
         vue.filter('normalizeDate', function (v) {
+            if (!v) {
+                return;
+            }
+
             var months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
             // 'Wen, 22 Apr 2016 11:12:44 +0000
-            // => [', 22 Apr 2016 11:12:44 +0000', '22 Apr 2016 11:12:44 +0000']
-            var m = v.match(/,\s+([\w\s:\+]+)/);
+            // => [', 22 Apr 2016 11:12:44 +0000', '22 Apr 2016 11:12:44 ']
+            var m = v.match(/,\s*(.+\s)/);
 
-            m = m && m[1] || '';
+            var t = m ? m[1].split(' ').slice(0, 3).join(' ') : v;
 
-            m = m.split(' ');
-
-            return Date.parse([m[2], months.indexOf(m[1]), m[0]].join('-'));
+            return t;
         });
 
         /**
@@ -31,8 +33,9 @@ define(function (require, exports, module) {
          *      a(null, 'yyy-M-dd hh:mm:ss')   "016-4-22 23:38:22"
          */
         vue.filter('formatDate', function (date, fmt) {
-
-            date = date || new Date();
+            if (!date) {
+                return;
+            }
 
             if (typeof date === 'number') {
                 date = new Date(date);

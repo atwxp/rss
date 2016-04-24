@@ -4,7 +4,7 @@
 
         <p class="meta">
            <span class="author">{{rss.creator}}</span>
-           <span class="date">{{rss.pubDate|normalizeDate|formatDate 'yyyy-MM-dd'}}</span>
+           <span class="date">{{rss.pubDate|normalizeDate}}</span>
            <span class="cat"></span>
         </p>
 
