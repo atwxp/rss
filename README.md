@@ -1,8 +1,6 @@
 RSS Reader Chrome Extenstion
 =====
 
-a simple rss reader chrome extension
-
 - localstorage 存储在本地
 
 - 目前仅支持 `rss2.0`
