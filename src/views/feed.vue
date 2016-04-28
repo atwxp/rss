@@ -1,9 +1,10 @@
  <template>
-    <div>
-        <feed-item v-for="r in rss" :rss="r"></feed-item>
-    </div>
+    <div v-show="$loadingRouteData">loading</div>
 
-    <v-pager></v-pager>
+    <div v-show="!$loadingRouteData">
+        <feed-item v-for="r in rss" :rss="r"></feed-item>
+        <v-pager></v-pager>
+    </div>
 </template>
 
 <script>
@@ -50,15 +51,12 @@
 
                     transition.next({
                         cacheRss: cached.items
-                        // totalPage: Math.ceil(cached.items.length / perPage)
                     });
-
-                    this.$broadcast('change-feed', Math.ceil(cached.items.length / perPage));
 
                     return;
                 }
 
-                this.$http.get(fd.feed)
+                return this.$http.get(fd.feed)
                     .then(function (res) {
                         if (!res.ok) {
                             console.error('request not valid');
@@ -80,9 +78,12 @@
                         });
 
                         this.$set('cacheRss', rss.items);
-
-                        this.$broadcast('change-rss', Math.ceil(rss.items.length / perPage));
                     });
+            }
+        },
+        watch: {
+            cacheRss: function (v) {
+                this.$broadcast('change-rss', Math.ceil(v.length / this.perPage));
             }
         },
 
@@ -104,8 +105,8 @@
 
         components: {
             'feed-item': require('../components/feed-item.vue'),
+
             'v-pager': require('../components/v-pager.vue')
         }
     };
 </script>
-

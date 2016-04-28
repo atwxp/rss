@@ -216,7 +216,7 @@
         .nav-item {
             position: relative;
             display: block;
-            padding: 0 10px 0 20px;
+            padding: 0 20px;
             height: 30px;
             line-height: 30px;
             text-overflow: ellipsis;
