@@ -1,5 +1,5 @@
 <template>
-    <a class="nav-item" v-link="{path: path, activeClass: 'active', replace: true}">
+    <a class="nav-item" v-link="{path: path, activeClass: 'active', replace: true}" title="{{text}}">
         <i :class="iconClass"></i>
         {{text}}
         <span class="del" v-if="del" v-on:click="doDel($event)">X</span>

@@ -7,7 +7,7 @@ RSS Reader Chrome Extenstion
 
 - 支持导出 `OPML`
 
-- 支持导入 `OPML` （todo）
+- 支持导入 `OPML`
 
 - 配置项允许设置每页文章数目、每几天更新，默认是5篇，每隔1天更新
 

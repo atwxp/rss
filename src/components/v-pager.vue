@@ -114,7 +114,7 @@
         },
 
         events: {
-            'change-feed': function (tp) {
+            'change-rss': function (tp) {
                 this.totalPage = tp;
 
                 this.go(1);

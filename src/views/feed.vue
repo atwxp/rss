@@ -81,7 +81,7 @@
 
                         this.$set('cacheRss', rss.items);
 
-                        this.$broadcast('change-feed', Math.ceil(rss.items.length / perPage));
+                        this.$broadcast('change-rss', Math.ceil(rss.items.length / perPage));
                     });
             }
         },

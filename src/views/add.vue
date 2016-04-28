@@ -9,7 +9,7 @@
                 <button type="button" class="button export" v-on:click="exportOPML">一键导出</button>
 
                 <div class="button import">
-                    <input type="file" name="opml" v-on:change="importOPML">
+                    <input type="file" name="opml" v-on:change="importOPML($event)">
                     <span class="text">导入opml文件</span>
                 </div>
             </div>
@@ -87,8 +87,7 @@
                         feed: feed
                     }, {
                         link: rss.link,
-                        title: rss.title,
-                        description: rss.description
+                        title: rss.title
                     });
 
                     this.feeds.unshift(newRss);
@@ -132,8 +131,53 @@
                 a.click();
             },
 
-            importOPML: function () {
+            importOPML: function (e) {
+                var me = this;
 
+                var file = e.target.files[0];
+
+                // 没有明确的 MIME
+                if (!/\.opml$/.test(file.name)) {
+                    alert('OPML格式不合法！');
+
+                    return;
+                }
+
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    var xml = e.target.result;
+
+                    var feedArr = util.parseOPML(xml);
+
+                    if (!feedArr || !feedArr.length) {
+
+                        alert('OPML格式不合法！导入失败');
+
+                        return;
+                    }
+
+                    var newRss = util.map(feedArr, function (f) {
+                        return util.extend({
+                            id: util.gid()
+                        }, {
+                            feed: f.xmlUrl,
+                            link: f.htmlUrl,
+                            title: f.title
+                        });
+                    });
+
+                    me.feeds = newRss.concat(me.feeds);
+
+                    me.$dispatch('change-feed', me.feeds);
+
+                    alert('导入成功');
+                };
+
+                reader.onerror = function () {
+                };
+
+                reader.readAsText(file);
             }
         }
     };
@@ -142,7 +186,8 @@
 <style lang="less">
     .manage {
         .button {
-            margin-right: 10px;
+            margin: 0 10px 10px 0;
+            vertical-align: middle;
         }
 
         .add-rss {

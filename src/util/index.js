@@ -88,6 +88,44 @@ define(function (require, exports, module) {
         return ret;
     };
 
+    var parseOPML = function (opml) {
+        var parser = new DOMParser();
+
+        opml = parser.parseFromString(opml, 'text/xml');
+
+        var opmlTag = opml.getElementsByTagName('opml')
+
+        if (!opmlTag || !opmlTag.length) {
+            return false;
+        }
+
+        opmlTag = opmlTag[0];
+
+        var outline = opmlTag.getElementsByTagName('outline');
+
+        if (!outline || !outline.length) {
+            return false;
+        }
+
+        var ret = [];
+
+        forEach(outline, function (otl) {
+            var type = otl.getAttribute('type') || '';
+
+            if (!/rss/.test(type)) {
+                return;
+            }
+
+            ret.push({
+                xmlUrl: otl.getAttribute('xmlUrl'),
+                htmlUrl: otl.getAttribute('htmlUrl'),
+                title: otl.getAttribute('title')
+            });
+        });
+
+        return ret;
+    };
+
     var parseRSS = function (xml) {
         var parser = new DOMParser();
 
@@ -111,7 +149,7 @@ define(function (require, exports, module) {
             }
         });
 
-        var rss = extend({items: []}, getNodeContent(channel, ['title', 'link', 'description'], ns));
+        var rss = extend({items: []}, getNodeContent(channel, ['title', 'link'], ns));
 
         var items = channel.getElementsByTagName('item');
         forEach(items, function (item) {
@@ -128,6 +166,7 @@ define(function (require, exports, module) {
     };
 
     module.exports = {
+        parseOPML: parseOPML,
         parseRSS: parseRSS,
         checkUrl: checkUrl,
         forEach: forEach,
