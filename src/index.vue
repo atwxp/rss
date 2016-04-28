@@ -163,6 +163,42 @@
         color: #696969;
     }
 
+    .input {
+        height: 36px;
+        padding: 0 8px;
+
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+
+        -webkit-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+
+        font-size: 14px;
+        &:focus {
+            border-color: #66afe9;
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+        }
+    }
+    .button {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+        padding: 0 20px;
+        border: none;
+        border-radius: 4px;
+        background-color: #5EA2DB;
+        cursor: pointer;
+        color: #fff;
+        &:hover,
+        &:focus,
+        &:active {
+            background-color: #5493C8;
+        }
+    }
+
     .app {
         overflow-x: hidden;
     }

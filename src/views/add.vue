@@ -1,7 +1,7 @@
 <template>
     <div class="manage">
         <div class="add-rss">
-            <input type="text" name="feed" v-model="feed" placeholder="输入要订阅的RSS源">
+            <input type="text" name="feed" v-model="feed" class="input" placeholder="输入要订阅的RSS源">
             
             <div class="operation">
                 <button type="button" class="button add" v-on:click="addRSS">添加订阅</button>
@@ -142,38 +142,13 @@
 <style lang="less">
     .manage {
         .button {
-            display: inline-block;
-            height: 30px;
-            line-height: 30px;
             margin-right: 10px;
-            padding: 0 20px;
-            border: none;
-            border-radius: 4px;
-            background-color: #5EA2DB;
-            cursor: pointer;
-            color: #fff;
-            &:hover,
-            &:focus,
-            &:active {
-                background-color: #5493C8;
-            }
         }
 
         .add-rss {
-            input {
+            .input {
                 width: 60%;
-                height: 36px;
                 margin-right: 10px;
-                padding: 0 8px;
-                border: 1px solid #ccc;
-
-                -webkit-box-sizing: border-box;
-                box-sizing: border-box;
-
-                font-size: 14px;
-                &:focus {
-
-                }
             }
         }
 

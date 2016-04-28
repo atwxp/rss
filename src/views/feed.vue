@@ -3,7 +3,7 @@
         <feed-item v-for="r in rss" :rss="r"></feed-item>
     </div>
 
-    <v-pager :total-page="totalPage" :cur-page="1"></v-pager>
+    <v-pager></v-pager>
 </template>
 
 <script>
@@ -13,11 +13,14 @@
     module.exports = {
         route: {
             data: function (transition) {
+
                 // 天数
-                var expiryTime = localStorage.get('expired') || 1;
+                var options = localStorage.get('options') || {};
+
+                var expiryTime = options.expired || 1;
 
                 // 每页数量
-                var perPage = localStorage.get('perPage') || 5;
+                var perPage = options.perPage || 5;
 
                 // feeds数据库
                 var feeds = localStorage.get('feeds') || [];
@@ -40,14 +43,17 @@
                 // 如果有缓存的rss，并且没有过期
                 if (
                     cached
+                    && cached.items
+                    && cached.items.length
                     && expiryTime * 24 * 60 * 60 * 1000 + cached._t > +new Date()
                 ) {
 
                     transition.next({
-                        cacheRss: cached.items,
-                        rss: cached.items.slice(0, perPage),
-                        totalPage: Math.ceil(cached.items.length / perPage)
+                        cacheRss: cached.items
+                        // totalPage: Math.ceil(cached.items.length / perPage)
                     });
+
+                    this.$broadcast('change-feed', Math.ceil(cached.items.length / perPage));
 
                     return;
                 }
@@ -75,25 +81,21 @@
 
                         this.$set('cacheRss', rss.items);
 
-                        this.$set('rss', rss.items.slice(0, perPage));
-
-                        this.$set('totalPage', Math.ceil(rss.items.length / perPage));
+                        this.$broadcast('change-feed', Math.ceil(rss.items.length / perPage));
                     });
             }
         },
 
         data: function () {
             return {
+                rss: [],
                 cacheRss: [],
-                totalPage: 0,
-                perPage: 1,
-                rss: []
+                perPage: 0
             };
         },
 
         events: {
             'change-pager': function (curPage) {
-
                 this.rss = this.cacheRss.slice((curPage - 1) * this.perPage, curPage * this.perPage);
 
                 window.scrollTo(0, 1);

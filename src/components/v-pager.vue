@@ -18,25 +18,20 @@
         data: function () {
             return {
                 range: [],
-                showPage: 7
-            }
-        },
-
-        watch: {
-            totalPage: 'render',
-
-            curPage: function () {
-                this.render();
-
-                this.$dispatch('change-pager', this.curPage);
+                showPage: 7,
+                curPage: 1
             }
         },
 
         methods: {
             go: function (page, e) {
-                e.preventDefault();
+                e && e.preventDefault();
 
                 this.curPage = page;
+
+                this.render();
+
+                this.$dispatch('change-pager', page);
             },
 
             render: function () {
@@ -48,6 +43,7 @@
                     this.range = [];
                     return;
                 }
+
                 if (cur < 1 || cur > total) {
                     return;
                 }
@@ -114,6 +110,14 @@
                 });
 
                 this.range = range;
+            }
+        },
+
+        events: {
+            'change-feed': function (tp) {
+                this.totalPage = tp;
+
+                this.go(1);
             }
         },
 
