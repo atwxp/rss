@@ -65,6 +65,20 @@ define(function (require, exports, module) {
 
             return fmt;
         });
+
+        vue.filter('escape', function (v, type) {
+            var result;
+
+            switch (type) {
+                case 'url':
+                    result = encodeURIComponent(v);
+                    break;
+
+                default:
+            }
+
+            return result;
+        });
     };
 
     module.exports = filter;

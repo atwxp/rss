@@ -129,6 +129,7 @@
 
 <style lang="less">
     .pagination {
+        margin: 20px 0;
         ul {
             display: inline-block;
             border-radius: 4px;

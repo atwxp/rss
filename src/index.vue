@@ -118,6 +118,48 @@
         font-style: normal;
     }
 
+    @font-face {
+        font-family: 'share';
+        src: url('assets/fonts/share.eot');
+        src: url('assets/fonts/share.eot?#iefix') format('embedded-opentype'),
+        url('assets/fonts/share.ttf') format('truetype'),
+        url('assets/fonts/share.woff') format('woff'),
+        url('assets/fonts/share.svg#share') format('svg')
+    }
+
+    [class^="share-"], [class*=" share-"] {
+        font-family: 'share' !important;
+        speak: none;
+        font-style: normal;
+        font-weight: normal;
+        font-variant: normal;
+        text-transform: none;
+        line-height: 1;
+
+        /* Better Font Rendering =========== */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    .share-weibo:before {
+        content: '\e600';
+    }
+
+    .share-qzone:before {
+        content: '\e602';
+    }
+
+    .share-qq:before {
+        content: '\e603';
+    }
+
+    .share-wechat:before {
+        content: '\e60a';
+    }
+    .share-yinxiang:before {
+        content: '\e601';
+    }
+
     [class^="icon-"], [class*=" icon-"] {
         /* use !important to prevent issues with browser extensions that change fonts */
         font-family: 'icomoon' !important;
