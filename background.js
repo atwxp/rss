@@ -1,10 +1,11 @@
 // https://css-tricks.com/colorpeek-part-2-building-first-chrome-extension/
 chrome.browserAction.onClicked.addListener(function (tab) {
-    var url = chrome.extension.getURL('./src/index.html');
+    var url = chrome.extension.getURL('/src/index.html');
 
     chrome.tabs.query({}, function (tabs) {
         var openTab = tabs.filter(function (t) {
-            return t.url === url;
+            return t.url && t.url.indexOf(url) > -1;
+            // return t.url === url;
         });
 
         if (openTab.length) {
