@@ -11,6 +11,8 @@ RSS Reader Chrome Extenstion
 
 - 配置项允许设置每页文章数目、每几天更新，默认是5篇，每隔1天更新
 
+- 支持分享微博、印象笔记、微信（todo）
+
 效果
 
 ![](./src/assets/images/screenshot.png)
