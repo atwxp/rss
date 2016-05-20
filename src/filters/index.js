@@ -18,7 +18,16 @@ define(function (require, exports, module) {
             // => [', 22 Apr 2016 11:12:44 +0000', '22 Apr 2016 11:12:44 ']
             var m = v.match(/,\s*(.+\s)/);
 
-            var t = m ? m[1].split(' ').slice(0, 3).join(' ') : v;
+            // 2016-05-12T16:00:00.000Z, atom
+            var m1 = v.match(/^(.+)T(.+)Z$/);
+
+            var t = v;
+            if (m) {
+                t = m[1].split(' ').slice(0, 3).join(' ');
+            }
+            else if (m1) {
+                t = m1[1];
+            }
 
             return t;
         });

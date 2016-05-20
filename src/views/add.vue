@@ -24,14 +24,13 @@
     var localStorage = require('../util/localstorage');
 
     module.exports = {
-            route: {
-                data: function (transition) {
-                    console.log('haha')
-                    transition.next({
-                        feeds: localStorage.get('feeds') || []
-                    });
-                }
-            },
+        route: {
+            data: function (transition) {
+                transition.next({
+                    feeds: localStorage.get('feeds') || []
+                });
+            }
+        },
 
         data: function () {
             return {

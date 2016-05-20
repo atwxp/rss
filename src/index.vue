@@ -193,11 +193,9 @@
 
     pre {
         background-color: #000;
-        width: 90%;
-        margin: 1em auto;
         padding: 1em;
-        white-space: pre-wrap;
         border-radius: 5px;
+        overflow: auto;
         color: #fff;
     }
 
