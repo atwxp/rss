@@ -127,14 +127,15 @@ define(function (require, exports, module) {
     };
 
     var parseRSS = function (xml) {
-        var parser = new DOMParser();
-
-        xml = parser.parseFromString(xml, 'text/xml');
+        if (!(xml instanceof XMLDocument)) {
+            var parser = new DOMParser();
+            xml = parser.parseFromString(xml, 'text/xml');
+        }
 
         var channel = xml.getElementsByTagName('channel');
 
         if (!channel || !channel.length) {
-            return false;
+            return;
         }
 
         channel = channel[0];
@@ -165,9 +166,93 @@ define(function (require, exports, module) {
         return rss;
     };
 
+    var parseAtom = function (xml) {
+        if (!(xml instanceof XMLDocument)) {
+            var parser = new DOMParser();
+            xml = parser.parseFromString(xml, 'text/xml');
+        }
+
+        var feed = xml.getElementsByTagName('feed');
+        if (!feed || !feed.length) {
+            return;
+        }
+        feed = feed[0];
+
+        var ns = {xmlns: null};
+        forEach(feed.attributes, function (v, k) {
+            if (/^xmlns:?(\w+)?/.test(v.name)) {
+                ns[v.localName] = v.value;
+            }
+        });
+
+        var rss = extend({items: [], link: ''}, getNodeContent(feed, 'title', ns));
+        forEach(feed.getElementsByTagNameNS(ns.xmlns, 'link') || [], function (val) {
+            var u = val.getAttribute('href');
+            rss.link = u;
+            return !(/atom.xml/i.test(u));
+        });
+
+        var entry = feed.getElementsByTagName('entry');
+        forEach(entry, function (et) {
+            var info = getNodeContent(et, ['title', 'published', 'content', 'summary'], ns);
+
+            // link
+            var link = et.getElementsByTagName('link');
+            link = link && link[0] && link[0].getAttribute('href');
+
+            // author
+            var author = et.getElementsByTagName('author');
+            author = author && author[0];
+            var creator = author && author.getElementsByTagName('name');
+            creator = creator && creator[0] && creator[0].textContent;
+
+            rss.items.push(extend(info, {
+                creator: creator,
+                link: link,
+                pubDate: info.published,
+                encoded: info.content,
+                description: info.summary
+            }));
+        });
+
+        return rss;
+    };
+
+    var parseFeed = function (xml) {
+        var parser = new DOMParser();
+
+        xml = parser.parseFromString(xml, 'text/xml');
+
+        var atom = xml.getElementsByTagName('feed');
+
+        if (atom && atom[0] && /atom/i.test(atom[0].getAttribute('xmlns'))) {
+            return parseAtom(xml);
+        }
+        else {
+            return parseRSS(xml);
+        }
+    };
+
+    var encodeHTML = function (str) {
+        var code = {
+            '&': '&amp;',
+            '>': '&gt;',
+            '<': '&lt;',
+            '"': '&quot;',
+            "'": '&#x27;'
+        };
+
+        return str.replace(/[&><"']/g, function (m) {
+            return code[m];
+        });
+    };
+
     module.exports = {
+        encodeHTML: encodeHTML,
         parseOPML: parseOPML,
         parseRSS: parseRSS,
+        parseAtom: parseAtom,
+        parseFeed: parseFeed,
         checkUrl: checkUrl,
         forEach: forEach,
         extend: extend,

@@ -2,12 +2,6 @@ define(function (require, exports, module) {
 
     var routerMap = function (router) {
         router.map({
-            '*': {
-                component: require('./views/add.vue')
-            },
-            '/': {
-                component: require('./views/add.vue')
-            },
             '/add': {
                 component: require('./views/add.vue')  
             },
@@ -19,11 +13,15 @@ define(function (require, exports, module) {
             }
         });
 
+        router.redirect({
+            '*': '/add'
+        });
+
         router.beforeEach(function (transition) {
             var toPath = transition.to.path;
             var fromPath = transition.from.path;
 
-            console.log('page from ' + fromPath + ' to: ' + toPath);
+            console.log('page from: ' + fromPath + ' to: ' + toPath);
 
             transition.next();
         });
@@ -32,7 +30,7 @@ define(function (require, exports, module) {
 
             window.scrollTo(0, 1);
 
-            console.log('成功浏览到：' + transition.to.path);
+            console.log('成功浏览到: ' + transition.to.path);
         });
     };
 

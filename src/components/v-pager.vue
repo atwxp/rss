@@ -18,8 +18,7 @@
         data: function () {
             return {
                 range: [],
-                showPage: 7,
-                curPage: 1
+                showPage: 7
             }
         },
 

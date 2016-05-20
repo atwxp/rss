@@ -63,7 +63,7 @@
                             return;
                         }
 
-                        var rss = util.parseRSS(res.data);
+                        var rss = util.parseFeed(res.data);
 
                         if (!rss) {
                             console.error('rss structure not valid');
@@ -81,6 +81,7 @@
                     });
             }
         },
+
         watch: {
             cacheRss: function (v) {
                 this.$broadcast('change-rss', Math.ceil(v.length / this.perPage));

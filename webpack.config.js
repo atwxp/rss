@@ -2,6 +2,7 @@ var path = require('path');
 
 var webpack = require('webpack');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 var SRC_PARH = 'src';
 var OUTPUT_PATH = 'output';
@@ -58,7 +59,10 @@ module.exports = {
     },
 
     plugins: [
-        new ExtractTextPlugin('index.css')
+        new ExtractTextPlugin('index.css'),
+        new HtmlWebpackPlugin({
+            template: 'index.html'
+        })
     ],
 
     resolve: {

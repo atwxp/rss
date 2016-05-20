@@ -24,13 +24,14 @@
     var localStorage = require('../util/localstorage');
 
     module.exports = {
-        route: {
-            data: function (transition) {
-                transition.next({
-                    feeds: localStorage.get('feeds') || []
-                });
-            }
-        },
+            route: {
+                data: function (transition) {
+                    console.log('haha')
+                    transition.next({
+                        feeds: localStorage.get('feeds') || []
+                    });
+                }
+            },
 
         data: function () {
             return {
@@ -73,7 +74,7 @@
                         return;
                     }
 
-                    var rss = util.parseRSS(res.data);
+                    var rss = util.parseFeed(res.data);
 
                     if (!rss) {
 
@@ -114,12 +115,14 @@
 
                 var outline = '';
 
+                // @see http://stackoverflow.com/questions/23422316/xml-validation-error-entityref-expecting
+                // 需要对XML中的 & 进行实体编码
                 util.forEach(this.feeds, function (f) {
                     outline += ''
                         + '<outline text="' + f.title + '" '
                         +     'title="' + f.title + '" type="rss" '
-                        +     'xmlUrl="' + f.feed + '" '
-                        +     'htmlUrl="' + f.link + '">'
+                        +     'xmlUrl="' + util.encodeHTML(f.feed) + '" '
+                        +     'htmlUrl="' + util.encodeHTML(f.link) + '">'
                         + '</outline>';
                 });
 
@@ -128,6 +131,7 @@
                 var a = document.createElement('a');
                 a.download = 'rss.opml';
                 a.href = 'data:text/xml;charset=utf-8,' + opml;
+
                 a.click();
             },
 

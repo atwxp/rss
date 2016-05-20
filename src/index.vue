@@ -63,12 +63,13 @@
 
                 this.feeds.splice(i, 1);
 
-                this.$emit('change-feed', this.feeds)
+                this.$emit('change-feed', this.feeds);
             }
         },
 
         events: {
             'change-feed': function (feeds) {
+                // 对已经添加的进行过滤 todo
                 this.feeds = feeds;
 
                 localStorage.set('feeds', feeds);
