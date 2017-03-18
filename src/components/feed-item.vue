@@ -93,31 +93,31 @@ export default {
         .share-evernote {
             color: #79C13A;
             &:hover {
-                background-color: currentColor;
+                background-color: #79C13A;
             }
         }
         .share-wechat {
             color: #0cc417;
             &:hover {
-                background-color: currentColor;
+                background-color: #0cc417;
             }
         }
         .share-weibo {
             color: #E6162D;
             &:hover {
-                background-color: currentColor;
+                background-color: #E6162D;
             }
         }
         .share-qq {
             color: #28A8E2;
             &:hover {
-                background-color: currentColor;
+                background-color: #28A8E2;
             }
         }
         .share-qzone {
             color: #F3B73D;
             &:hover {
-                background-color: currentColor;
+                background-color: #28A8E2;
             }
         }
     }

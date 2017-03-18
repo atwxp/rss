@@ -14,7 +14,6 @@ const router = new VueRouter({
 })
 
 Vue.use(VueResource)
-Vue.http.options.emulateJSON = true
 
 myFilter(Vue)
 
