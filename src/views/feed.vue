@@ -1,113 +1,113 @@
- <template>
-    <div v-show="$loadingRouteData">loading</div>
+<template>
+<div class="content">
+    <div v-show="loading">loading</div>
 
-    <div v-show="!$loadingRouteData">
-        <feed-item v-for="r in rss" :rss="r"></feed-item>
-        <v-pager></v-pager>
+    <div v-show="post">
+        <feed-item v-for="r in post" :rss="r" :key="r.id"></feed-item>
+
+        <v-pager :total-page="totalPage" v-on:pagechange="pagechange"></v-pager>
     </div>
+</div>
 </template>
 
 <script>
-    var util = require('../util/index');
-    var localStorage = require('../util/localstorage');
+import * as util from 'util/index'
+import * as ls from 'util/localstorage'
 
-    module.exports = {
-        route: {
-            data: function (transition) {
+import FeedItem from 'components/feed-item'
+import VPager from 'components/v-pager'
 
-                // 天数
-                var options = localStorage.get('options') || {};
+import { mapState, mapGetters } from 'vuex'
 
-                var expiryTime = options.expired || 1;
+export default {
+    data() {
+        return {
+            loading: false,
 
-                // 每页数量
-                var perPage = options.perPage || 5;
+            post: null,
 
-                // feeds数据库
-                var feeds = localStorage.get('feeds') || [];
+            allPost: null,
 
-                var fd = feeds.filter(function (f) {
-                    return f.id == transition.to.params.id;
-                })[0];
-
-                // feeds 数据库中不存在指定id的feed源
-                if (!fd) {
-                    console.error('no rss feed');
-
-                    return;
-                }
-
-                this.$set('perPage', perPage);
-
-                var cached = localStorage.get(fd.id);
-
-                // 如果有缓存的rss，并且没有过期
-                if (
-                    cached
-                    && cached.items
-                    && cached.items.length
-                    && expiryTime * 24 * 60 * 60 * 1000 + cached._t > +new Date()
-                ) {
-
-                    transition.next({
-                        cacheRss: cached.items
-                    });
-
-                    return;
-                }
-
-                return this.$http.get(fd.feed)
-                    .then(function (res) {
-                        if (!res.ok) {
-                            console.error('request not valid');
-                            return;
-                        }
-
-                        var rss = util.parseFeed(res.data);
-
-                        if (!rss) {
-                            console.error('rss structure not valid');
-
-                            return;
-                        }
-
-                        // 更新缓存
-                        localStorage.set(fd.id, {
-                            items: rss.items,
-                            _t: +new Date()
-                        });
-
-                        this.$set('cacheRss', rss.items);
-                    });
-            }
-        },
-
-        watch: {
-            cacheRss: function (v) {
-                this.$broadcast('change-rss', Math.ceil(v.length / this.perPage));
-            }
-        },
-
-        data: function () {
-            return {
-                rss: [],
-                cacheRss: [],
-                perPage: 0
-            };
-        },
-
-        events: {
-            'change-pager': function (curPage) {
-                this.rss = this.cacheRss.slice((curPage - 1) * this.perPage, curPage * this.perPage);
-
-                window.scrollTo(0, 1);
-            }
-        },
-
-        components: {
-            'feed-item': require('../components/feed-item.vue'),
-
-            'v-pager': require('../components/v-pager.vue')
+            totalPage: 0
         }
-    };
+    },
+
+    computed: {
+        ...mapState({
+            perPage: state => state.config.perPage,
+            expired: state => state.config.expired
+        }),
+
+        ...mapGetters([
+            'feedList'
+        ])
+    },
+
+    created() {
+        this.fetchData()
+    },
+
+    watch: {
+        // 如果路由有变化，会再次执行该方法
+        '$route': 'fetchData'
+    },
+
+    methods: {
+        setPost(post) {
+            this.loading = false
+
+            this.allPost = post
+            this
+            .totalPage = Math.ceil(this.allPost.length / this.perPage)
+        },
+
+        fetchData() {
+            this.post = null
+            this.loading = true
+            this.allPost = null
+            this.totalPage = 0
+
+            const me = this
+            const id = this.$route.params.id
+
+            const feed = this.feedList.filter(fl => fl.id === id)[0]
+
+            if (!feed) {
+                return alert('不存在该feed id')
+            }
+
+            // 检查缓存
+            const cacheFeed = ls.get(feed.id)
+            if (
+                cacheFeed && cacheFeed.list && cacheFeed.list.length
+                && +new Date() < this.expired * 24 * 60 * 60 * 1000 + cacheFeed._t
+            ) {
+                this.setPost(cacheFeed.list)
+            }
+            else {
+                util.fetchFeed(feed.url).then(rss => {
+
+                    me.setPost(rss.items)
+
+                    ls.set(feed.id, {
+                        list: rss.items,
+                        _t: +new Date()
+                    })
+
+                }).catch(err => {
+                    console.log(err)
+                })
+            }
+        },
+
+        pagechange(curPage) {
+            this.post = this.allPost.slice((curPage - 1) * this.perPage, curPage * this.perPage)
+        }
+    },
+
+    components: {
+        FeedItem,
+        VPager
+    }
+}
 </script>

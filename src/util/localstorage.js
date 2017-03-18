@@ -1,98 +1,58 @@
-define(function (require, exports, module) {
+import { parse } from 'util/index'
 
-    var util = require('./index');
+const storage = window.localStorage
 
-    var storage = window.localStorage;
+// feature detect
+const support = !!(storage && storage.getItem)
 
-    // feature detect
-    var support = !!(storage && storage.setItem);
+// ios 无痕浏览, localStorage可以读, 但是不可以写&删除
+const available = (function () {
+    try {
+        storage.setItem('_t', ' ')
+    }
+    catch (e) {
+        return false
+    }
 
-    // ios 无痕浏览, localStorage可以读, 但是不可以写&删除
-    var available = (function () {
-        try {
-            storage.setItem('_t', ' ');
-        }
-        catch (e) {
-            return false;
-        }
+    return true;
+})()
 
-        return true;
-    })();
+export function set(key, value) {
+    if (!support || !available) {
+        return
+    }
 
-    var parse = function (str) {
-        try {
-            return JSON.parse(str);
-        }
-        catch (e) {
-            return str;
-        }
-    };
+    // 不同浏览器，分配给本地存储的空间是不一样的，一般存储大小为 5M 当本地存储满了，再往里面写数据，将会触发 error
+    try {
+        storage.setItem(key, JSON.stringify(value))
+    }
 
-    var set = function (key, value) {
-        if (!support || !available) {
-            return;
-        }
+    catch (e) {
+        throw new Error(e)
+    }
+}
 
-        if (!/object|array|string/.test(util.type(value))) {
-            throw new Error('`' + value + '` is not the valid value, only support String or Object or Array');
-            return;
-        }
+export function get(key) {
+    if (!support) {
+        return
+    }
 
-        try {
-            storage.setItem(key, JSON.stringify(value));
-        }
+    // null || string
+    return parse(storage.getItem(key))
+}
 
-        catch (e) {
-            console.log(e);
-        }
-    };
+export function remove(key) {
+    if (!support || !available) {
+        return
+    }
 
-    var get = function (key) {
-        if (!support) {
-            return;
-        }
+    storage.removeItem(key)
+}
 
-        // null || string
-        var v = storage.getItem(key);
+export function clear() {
+    if (!support || !available) {
+        return
+    }
 
-        return parse(v);
-    };
-
-    var remove = function (key) {
-
-        if (!support || !available) {
-            return;
-        }
-
-        storage.removeItem(key);
-    };
-
-    var clear = function () {
-        if (!support || !available) {
-            return;
-        }
-
-        storage.clear();
-    };
-
-    var getAll = function () {
-        var ret = {};
-
-        for (var i = 0, len = storage.length; i < len; i++) {
-            var k = storage[i];
-
-            ret[k] = getItem(k);
-        }
-
-        return ret;
-    };
-
-    module.exports = {
-        set: set,
-        get: get,
-        remove: remove,
-        clear: clear,
-        getAll: getAll
-    };
-
-});
+    storage.clear()
+}

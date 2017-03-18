@@ -1,266 +1,232 @@
-define(function (require, exports, module) {
+/**
+ * @file   util tool
+ * @author wxp201013@163.com
+ */
+import Vue from 'vue'
 
-    var type = function (o) {
-        return Object.prototype.toString.call(o).slice(8, -1).toLowerCase();
-    };
+export function gid() {
+    return 'xxxx'.replace(/x/g, function (v) {
+        return (Math.random() * 16 | 0).toString(16)
+    })
+}
 
-    var gid = function () {
-        return 'xxxx'.replace(/x/g, function (v) {
-            return (Math.random() * 16 | 0).toString(16);
-        });
-    };
+export function parse(str) {
+    try {
+        return JSON.parse(str)
+    }
+    catch (e) {
+        return str
+    }
+}
 
-    var forEach = function (obj, method) {
-        if (type(obj) === 'array') {
-            for (var i = 0, l = obj.length; i < l; i++) {
-                if (method.call(this, obj[i], i) === false) {
-                    break;
-                }
-            }
-            return;
-        }
+// http://stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url
+export function checkUrl(url) {
+    return /[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/.test(url)
+}
 
-        for (var key in obj) {
-            if (obj.hasOwnProperty(key) && method.call(this, obj[key], key) ===  false) {
-                return;
-            }
-        }
-    };
+export function getNodeContent(parent, nodes, namespace) {
+    nodes = nodes instanceof Array ? nodes : [nodes]
 
-    var transform = function (obj, method) {
-        var target = new obj.constructor();
+    const ret = {};
 
-        forEach(obj, function (val, key) {
-            method(target, val, key);
-        });
+    for (let node of nodes) {
+        node = node.split(':')
 
-        return target;
-    };
+        const ns = namespace[node.length === 1 ? 'xmlns' : node[0]]
 
-    var map = function (obj, method) {
-        return transform(obj, function (target, v, k) {
-            target[k] = method ? method(v, k) : v;
-        });
-    };
+        node = node[node.length === 1 ? 0 : 1]
 
-    var filter = function (obj, method) {
-        return transform(obj, function (target, v, k) {
-            if (method(v, k)) {
-                target[k] = v;
-            }
-        });
-    };
+        const n = parent.getElementsByTagNameNS(ns, node)[0]
 
-    var clone = map;
+        ret[node] = n && n.textContent
+    }
 
-    var extend = function (target, source, alone) {
-        target = alone ? clone(target) : target;
+    return ret
+}
 
-        forEach(source, function (v, k) {
-            target[k] = v;
-        });
+export function parseOPML(opml) {
+    const doc = new DOMParser().parseFromString(opml, 'text/xml')
 
-        return target;
-    };
+    const opmlroot = doc.getElementsByTagName('opml')[0]
 
-    // http://stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url
-    var checkUrl = function (url) {
-        return /[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/.test(url);
-    };
+    const outline = opmlroot && opmlroot.getElementsByTagName('outline')
 
-    var getNodeContent = function (parent, nodes, namespace) {
-        nodes = nodes instanceof Array ? nodes : [nodes];
+    const ret = []
 
-        var ret = {};
+    if (outline && outline.length) {
+        for (const otl of outline) {
 
-        forEach(nodes, function (node) {
-            node = node.split(':');
-
-            var ns = namespace[node.length === 1 ? 'xmlns' : node[0]];
-
-            node = node[node.length === 1 ? 0 : 1];
-
-            var n = parent.getElementsByTagNameNS(ns, node);
-
-            ret[node] = n && n[0] && n[0].textContent;
-        });
-
-        return ret;
-    };
-
-    var parseOPML = function (opml) {
-        var parser = new DOMParser();
-
-        opml = parser.parseFromString(opml, 'text/xml');
-
-        var opmlTag = opml.getElementsByTagName('opml')
-
-        if (!opmlTag || !opmlTag.length) {
-            return false;
-        }
-
-        opmlTag = opmlTag[0];
-
-        var outline = opmlTag.getElementsByTagName('outline');
-
-        if (!outline || !outline.length) {
-            return false;
-        }
-
-        var ret = [];
-
-        forEach(outline, function (otl) {
-            var type = otl.getAttribute('type') || '';
-
-            if (!/rss/.test(type)) {
-                return;
+            if (!/rss/.test(otl.getAttribute('type'))) {
+                continue
             }
 
             ret.push({
-                xmlUrl: otl.getAttribute('xmlUrl'),
-                htmlUrl: otl.getAttribute('htmlUrl'),
+                url: otl.getAttribute('xmlUrl'),
+
+                link: otl.getAttribute('htmlUrl'),
+
                 title: otl.getAttribute('title')
-            });
-        });
-
-        return ret;
-    };
-
-    var parseRSS = function (xml) {
-        if (!(xml instanceof XMLDocument)) {
-            var parser = new DOMParser();
-            xml = parser.parseFromString(xml, 'text/xml');
+            })
         }
+    }
 
-        var channel = xml.getElementsByTagName('channel');
+    return ret
+}
 
-        if (!channel || !channel.length) {
-            return;
+export function parseRSS(xml) {
+    if (!(xml instanceof XMLDocument)) {
+        const parser = new DOMParser()
+
+        xml = parser.parseFromString(xml, 'text/xml')
+    }
+
+    const xmlbody = xml.getElementsByTagName('channel')[0]
+    if (!xmlbody) {
+        return
+    }
+
+    // xmlns:atom="http://www.w3.org/2005/Atom"
+    // attr.name: 'xmlns:atom'
+    // attr.localName: atom
+    const xmlroot = xml.getElementsByTagName('rss')[0]
+    const ns = {xmlns: null}
+    Array.from(xmlroot.attributes).forEach(attr => {
+        if (/^xmlns:?(\w+)?/.test(attr.name)) {
+            ns[attr.localName] = attr.value
         }
+    })
 
-        channel = channel[0];
+    const rss = Object.assign({items: []}, getNodeContent(channel, ['title', 'link'], ns))
+    for (const item of xmlbody.getElementsByTagName('item')) {
+        const info = getNodeContent(item, ['title', 'link', 'pubDate', 'description', 'dc:creator', 'content:encoded'], ns)
 
-        var rss = xml.getElementsByTagName('rss');
-        rss = rss && rss[0];
+        rss.items.push({
+            link: info.link,
 
-        var ns = {xmlns: null};
-        forEach(rss.attributes, function (v, k) {
-            if (/^xmlns:?(\w+)?/.test(v.name)) {
-                ns[v.localName] = v.value;
+            title: info.title,
+
+            pubDate: info.pubDate,
+
+            summary: info.description,
+
+            article: info.content,
+
+            creator: info.creator
+        })
+    }
+
+    return rss
+}
+
+// https://validator.w3.org/feed/docs/atom.html
+export function parseAtom(xml) {
+    if (!(xml instanceof XMLDocument)) {
+        const parser = new DOMParser()
+        xml = parser.parseFromString(xml, 'text/xml')
+    }
+
+    const xmlroot = xml.getElementsByTagName('feed')[0]
+    if (!xmlroot) {
+        return
+    }
+
+    // xmlns:atom="http://www.w3.org/2005/Atom"
+    // attr.name: 'xmlns:atom'
+    // attr.localName: atom
+    const ns = {xmlns: null}
+    Array.from(xmlroot.attributes).forEach(attr => {
+        if (/^xmlns:?(\w+)?/.test(attr.name)) {
+            ns[attr.localName] = attr.value
+        }
+    })
+
+    // 获取xmlroot本身的信息
+    const author = xmlroot.getElementsByTagName('author')[0]
+    const xmlrootInfo = getNodeContent(xmlroot, ['id', 'title'], ns)
+    const rss = {
+        items: [],
+        link: xmlrootInfo.id,
+        title: xmlrootInfo.title,
+        author: author && (author.getElementsByTagName('name')[0] || {}).textContent
+    }
+
+    // 获取xmlroot下每个 entry 的信息
+    Array.from(xmlroot.getElementsByTagName('entry')).forEach(entry => {
+        const info = getNodeContent(entry, ['title', 'id', 'published', 'updated', 'summary', 'content'], ns)
+
+        let author = entry.getElementsByTagName('author')[0]
+        author = author && (author.getElementsByTagName('name')[0] || {}).textContent
+
+        rss.items.push({
+            link: info.id,
+
+            title: info.title,
+
+            pubDate: info.update || info.published,
+
+            summary: info.summary,
+
+            article: info.content,
+
+            creator: author || rss.author
+        })
+    })
+
+    return rss
+}
+
+// https://validator.w3.org/feed/docs/
+export function parseFeed(xml) {
+    const parser = new DOMParser()
+
+    xml = parser.parseFromString(xml, 'application/xml')
+
+    const atom = xml.getElementsByTagName('feed')[0]
+
+    if (atom && /atom/i.test(atom.getAttribute('xmlns'))) {
+        return parseAtom(xml)
+    }
+    else {
+        return parseRSS(xml)
+    }
+}
+
+export function encodeHTML(str) {
+    const code = {
+        '&': '&amp;',
+
+        '>': '&gt;',
+
+        '<': '&lt;',
+
+        '"': '&quot;',
+
+        "'": '&#x27;'
+    }
+
+    return str.replace(/[&><"']/g, m => code[m])
+}
+
+export function fetchFeed(url) {
+    return new Promise((resolve, reject) => {
+        Vue.http.get(url).then(response => {
+            if (!response.ok) {
+                reject(response.statusText)
             }
-        });
 
-        var rss = extend({items: []}, getNodeContent(channel, ['title', 'link'], ns));
+            else {
+                const reader = new FileReader()
 
-        var items = channel.getElementsByTagName('item');
-        forEach(items, function (item) {
-            rss.items.push(
-                getNodeContent(
-                    item,
-                    ['title', 'link', 'pubDate', 'description', 'dc:creator', 'content:encoded'],
-                    ns
-                )
-            );
-        });
+                reader.onload = function (e) {
+                    const rss = parseFeed(e.target.result)
 
-        return rss;
-    };
+                    rss ? resolve(rss) : reject()
+                }
 
-    var parseAtom = function (xml) {
-        if (!(xml instanceof XMLDocument)) {
-            var parser = new DOMParser();
-            xml = parser.parseFromString(xml, 'text/xml');
-        }
-
-        var feed = xml.getElementsByTagName('feed');
-        if (!feed || !feed.length) {
-            return;
-        }
-        feed = feed[0];
-
-        var ns = {xmlns: null};
-        forEach(feed.attributes, function (v, k) {
-            if (/^xmlns:?(\w+)?/.test(v.name)) {
-                ns[v.localName] = v.value;
+                reader.readAsText(response.body)
             }
-        });
-
-        var rss = extend({items: [], link: ''}, getNodeContent(feed, 'title', ns));
-        forEach(feed.getElementsByTagNameNS(ns.xmlns, 'link') || [], function (val) {
-            var u = val.getAttribute('href');
-            rss.link = u;
-            return !(/atom.xml/i.test(u));
-        });
-
-        var entry = feed.getElementsByTagName('entry');
-        forEach(entry, function (et) {
-            var info = getNodeContent(et, ['title', 'published', 'content', 'summary'], ns);
-
-            // link
-            var link = et.getElementsByTagName('link');
-            link = link && link[0] && link[0].getAttribute('href');
-
-            // author
-            var author = et.getElementsByTagName('author');
-            author = author && author[0];
-            var creator = author && author.getElementsByTagName('name');
-            creator = creator && creator[0] && creator[0].textContent;
-
-            rss.items.push(extend(info, {
-                creator: creator,
-                link: link,
-                pubDate: info.published,
-                encoded: info.content,
-                description: info.summary
-            }));
-        });
-
-        return rss;
-    };
-
-    var parseFeed = function (xml) {
-        var parser = new DOMParser();
-
-        xml = parser.parseFromString(xml, 'text/xml');
-
-        var atom = xml.getElementsByTagName('feed');
-
-        if (atom && atom[0] && /atom/i.test(atom[0].getAttribute('xmlns'))) {
-            return parseAtom(xml);
-        }
-        else {
-            return parseRSS(xml);
-        }
-    };
-
-    var encodeHTML = function (str) {
-        var code = {
-            '&': '&amp;',
-            '>': '&gt;',
-            '<': '&lt;',
-            '"': '&quot;',
-            "'": '&#x27;'
-        };
-
-        return str.replace(/[&><"']/g, function (m) {
-            return code[m];
-        });
-    };
-
-    module.exports = {
-        encodeHTML: encodeHTML,
-        parseOPML: parseOPML,
-        parseRSS: parseRSS,
-        parseAtom: parseAtom,
-        parseFeed: parseFeed,
-        checkUrl: checkUrl,
-        forEach: forEach,
-        extend: extend,
-        filter: filter,
-        clone: clone,
-        type: type,
-        gid: gid,
-        map: map
-    };
-
-});
+        }, err => {
+            reject(err)
+        })
+    })
+}

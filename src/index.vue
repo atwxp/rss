@@ -1,81 +1,61 @@
 <template>
-    <div class="app">
-        <section class="sidebar">
+<div class="app">
+    <section class="sidebar">
+        <ul class="nav">
+            <li>
+                <nav-item path="/add" icon="add" text="添加订阅"></nav-item>
+            </li>
+            <li>
+                <nav-item path="/setting" icon="setting" text="设置"></nav-item>
+            </li>
+        </ul>
 
-            <ul class="nav">
-                <li>
-                    <nav-item path="/add" icon="add" text="添加订阅"></nav-item>
-                </li>
-                <li>
-                    <nav-item path="/setting" icon="setting" text="设置"></nav-item>
+        <div class="rsslist">
+            <p class="headline">
+                <span class="text icon-home">订阅源</span>
+                <span class="action icon-setting" v-on:click="edit=!edit"></span>
+            </p>
+
+            <ul v-bind:class="edit ? 'edit' : ''">
+                <li v-for="(f, k) in feedList" :key="k">
+                    <nav-item :path="'/feed/' + f.id" :text="f.title" hasDel v-on:delfeed="deleteFeed(f.id)"></nav-item>
                 </li>
             </ul>
-
-            <div class="rss">
-                <p class="headline">
-                    <span class="text"><i class="icon-home"></i>订阅源</span>
-                    <span class="action" v-on:click="edit=!edit"><i class="icon-setting"></i></span>
-                </p>
-
-                <ul v-bind:class="edit ? 'edit' : ''">
-                    <li v-for="f in feeds">
-                        <nav-item :path="'/feed/' + f.id" :text="f.title" del="true" v-on:do-del="doDel(f.id)"></nav-item>
-                    </li>
-                </ul>
-            </div>
-        </section>
-        
-        <section class="main">
-            <router-view></router-view>
-        </section>
-    </div>
+        </div>
+    </section>
+    
+    <section class="main">
+        <router-view></router-view>
+    </section>
+</div>
 </template>
 
 <script>
-    var localStorage = require('./util/localstorage');
+import NavItem from 'components/nav-item'
 
-    module.exports = {
-        data: function () {
-            return {
-                feeds: [],
-                edit: false
-            };
-        },
+import { mapState, mapActions } from 'vuex'
 
-        ready: function () {
-            this.feeds = localStorage.get('feeds') || [];
-        },
-
-        components: {
-            'nav-item': require('./components/nav-item.vue')
-        },
-
-        methods: {
-            doDel: function (id) {
-                for (var i = 0, len = this.feeds.length; i < len; i++) {
-
-                    if (this.feeds[i].id === id) {
-                        break;
-                    }
-                }
-
-                localStorage.remove(id);
-
-                this.feeds.splice(i, 1);
-
-                this.$emit('change-feed', this.feeds);
-            }
-        },
-
-        events: {
-            'change-feed': function (feeds) {
-                // 对已经添加的进行过滤 todo
-                this.feeds = feeds;
-
-                localStorage.set('feeds', feeds);
-            }
+export default {
+    data() {
+        return {
+            edit: false
         }
-    };
+    },
+
+    computed: mapState({
+        feedList: state => state.feedList
+    }),
+
+    components: {
+        NavItem
+    },
+
+    methods: {
+        ...mapActions([
+            'deleteFeed'
+        ])
+    }
+}
 </script>
 
 <style lang="less">
@@ -157,7 +137,7 @@
     .share-wechat:before {
         content: '\e60a';
     }
-    .share-yinxiang:before {
+    .share-evernote:before {
         content: '\e601';
     }
 
@@ -287,7 +267,7 @@
             }
         }
 
-        .rss {
+        .rsslist {
             .headline {
                 height: 40px;
                 line-height: 40px;
@@ -300,7 +280,8 @@
                 .action {
                     position: relative;
                     float: right;
-                    padding: 0 8px 0 4px;
+                    margin-top: 13px;
+                    padding: 0 8px;
                     background-color: #e8e8e8;
                     cursor: pointer;
                 }

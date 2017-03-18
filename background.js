@@ -5,7 +5,6 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     chrome.tabs.query({}, function (tabs) {
         var openTab = tabs.filter(function (t) {
             return t.url && t.url.indexOf(url) > -1;
-            // return t.url === url;
         });
 
         if (openTab.length) {

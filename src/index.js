@@ -1,21 +1,26 @@
-var Vue = require('vue');
-var VueRouter = require('vue-router');
-var VueResource = require('vue-resource');
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+import VueResource from 'vue-resource'
 
-var App = require('./index.vue');
+import App from './index.vue'
+import store from './store'
+import routes from './router'
+import myFilter from './filters/index'
 
-// install router
-Vue.use(VueRouter);
-var router = new VueRouter();
-require('./router')(router);
+Vue.use(VueRouter)
 
-// install resource
-Vue.use(VueResource);
+const router = new VueRouter({
+    routes
+})
 
-// Directive
-// require('./directives/index', Vue);
+Vue.use(VueResource)
+Vue.http.options.emulateJSON = true
 
-// Filters
-require('./filters/index')(Vue);
+myFilter(Vue)
 
-router.start(App, '#app');
+new Vue({
+    el: '#app',
+    store,
+    router,
+    render: h => h(App)
+})

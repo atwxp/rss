@@ -1,36 +1,55 @@
 <template>
-    <a class="nav-item" v-link="{path: path, activeClass: 'active', replace: true}" title="{{text}}">
-        <i :class="iconClass"></i>
-        {{text}}
-        <span class="del" v-if="del" v-on:click="doDel($event)">X</span>
-    </a>
+<router-link class="nav-item" :class="iconClass" :to="{path: path}" active-class="active" replace>
+    <span class="feed">{{text}}</span>
+    <span class="del" v-if="hasDel" v-on:click="delFeed">X</span>
+</router-link>
 </template>
 
 <script>
-    module.exports = {
-        props: {
-            path: '',
-            icon: '',
-            text: '',
-            del: false
+export default {
+    props: {
+        path: {
+            type: [String],
+            default: ''
         },
 
-        computed: {
-            iconClass: function () {
-                if (this.icon) {
-                    return 'icon-' + this.icon;
-                }
-            }
+        icon: {
+            type: [String],
+            default: ''
         },
 
-        methods: {
-            doDel: function (e) {
-                e.preventDefault();
+        text: {
+            type: [String],
+            default: ''
+        },
 
-                this.$dispatch('do-del');
-            }
+        feed: {
+            type: [String],
+            default: ''
+        },
+
+        hasDel: {
+            type: [Boolean],
+            default: false
         }
-    };
+    },
+
+    computed: {
+        iconClass() {
+            return this.icon ? 'icon-' + this.icon : ''
+        }
+    },
+
+    methods: {
+        delFeed(e) {
+            e.preventDefault()
+
+            e.stopPropagation()
+
+            this.$emit('delfeed')
+        }
+    }
+}
 </script>
 
 <style lang="less">
