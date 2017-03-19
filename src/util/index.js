@@ -5,7 +5,7 @@
 import Vue from 'vue'
 
 export function gid() {
-    return 'xxxx'.replace(/x/g, function (v) {
+    return 'xxxxxxxx'.replace(/x/g, function (v) {
         return (Math.random() * 16 | 0).toString(16)
     })
 }

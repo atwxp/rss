@@ -17,7 +17,7 @@ export default {
     },
 
     [types.UPDATE_CONFIG] (state, cfg, save = true) {
-        Object.assign(state, cfg)
+        Object.assign(state.config, cfg)
 
         save && ls.set('config', state.config)
     }

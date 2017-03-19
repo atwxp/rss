@@ -9,9 +9,7 @@ import myFilter from './filters/index'
 
 Vue.use(VueRouter)
 
-const router = new VueRouter({
-    routes
-})
+const router = new VueRouter({routes})
 
 Vue.use(VueResource)
 

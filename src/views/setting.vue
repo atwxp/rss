@@ -2,12 +2,12 @@
 <form action="" class="setting">
     <p class="form-control">
         <label for="perPage">页数</label>
-        <input type="text" id="perPage" name="perPage" class="input" v-model="config.perPage" @input="fakeUpdateConfig" />
+        <input type="text" id="perPage" name="perPage" class="input" v-model="config.perPage" />
     </p>
 
     <p class="form-control">
         <label for="expired">更新天数</label>
-        <input type="text" id="expired" name="expired" value="1" class="input" v-model="config.expired" @input="fakeUpdateConfig" />
+        <input type="text" id="expired" name="expired" value="1" class="input" v-model="config.expired" />
     </p>
 
     <p class="form-control">
@@ -31,33 +31,25 @@ export default {
             'updateConfig',
         ]),
 
-        fakeUpdateConfig(e) {
-            const cfg = {}
-
-            cfg[e.target.id] = e.target.value
-
-            this.updateConfig(cfg, false)
-        },
-
         save(e) {
             e.preventDefault()
 
-            if (this.perPage <= 0) {
+            const perPage = this.$el.querySelector('#perPage').value
+
+            const expired = this.$el.querySelector('#expired').value
+
+            if (perPage <= 0) {
                 alert('perPage must > 0')
             }
             else {
-                this.updateConfig({
-                    perPage: this.config.perPage
-                })
+                this.updateConfig({perPage})
             }
 
-            if (this.expired <= 0)  {
+            if (expired <= 0)  {
                 alert('更新天数 > 0')
             }
             else {
-                this.updateConfig({
-                    expired: this.config.expired
-                })
+                this.updateConfig({expired})
             }
 
             alert('设置成功')

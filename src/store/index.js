@@ -9,12 +9,13 @@ import { get } from 'util/localstorage'
 
 Vue.use(Vuex)
 
+const config = get('config') || {}
+
 const state = {
     config: {
-        perPage: get('perPage') || 5,
-        expired: get('expired') || 1
+        perPage: config.perPage || 5,
+        expired: config.expired || 1
     },
-
     feedList: get('feeds') || []
 }
 

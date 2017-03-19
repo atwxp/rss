@@ -7,6 +7,7 @@ import path from 'path'
 import webpack from 'webpack'
 import ExtractTextPlugin from 'extract-text-webpack-plugin'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
+import CopyWebpackPlugin from 'copy-webpack-plugin'
 
 const SRC_PARH = 'src'
 
@@ -73,7 +74,12 @@ export default {
 
         new HtmlWebpackPlugin({
             template: 'index.html'
-        })
+        }),
+
+        new CopyWebpackPlugin([
+            {from: '../manifest.json'},
+            {from: '../background.js'}
+        ])
     ],
 
     resolve: {
