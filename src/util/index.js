@@ -96,7 +96,7 @@ export function parseRSS(xml) {
         }
     })
 
-    const rss = Object.assign({items: []}, getNodeContent(channel, ['title', 'link'], ns))
+    const rss = Object.assign({items: []}, getNodeContent(xmlbody, ['title', 'link'], ns))
     for (const item of xmlbody.getElementsByTagName('item')) {
         const info = getNodeContent(item, ['title', 'link', 'pubDate', 'description', 'dc:creator', 'content:encoded'], ns)
 
@@ -214,6 +214,11 @@ export function fetchFeed(url) {
                 reject(response.statusText)
             }
 
+            if (typeof response.body === 'string') {
+                const rss = parseFeed(response.body)
+
+                rss ? resolve(rss) : reject()
+            }
             else {
                 const reader = new FileReader()
 
@@ -221,6 +226,10 @@ export function fetchFeed(url) {
                     const rss = parseFeed(e.target.result)
 
                     rss ? resolve(rss) : reject()
+                }
+
+                reader.onerror = function () {
+                    reject()
                 }
 
                 reader.readAsText(response.body)

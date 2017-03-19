@@ -60,8 +60,6 @@ export default {
                 return
             }
 
-            console.log('render pager')
-
             // 现在是偶数，如果是奇数呢？？todo
             var average = Math.floor((showPage - 3) / 2)
 
