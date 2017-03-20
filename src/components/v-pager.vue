@@ -29,19 +29,23 @@ export default {
 
     data() {
         return {
+            cur: this.curPage,
             range: []
         }
     },
 
     watch: {
-        totalPage: 'render'
+        totalPage() {
+            this.cur = 1
+            this.render()
+        }
     },
 
     methods: {
         go(page, e) {
             e && e.preventDefault()
 
-            this.curPage = page
+            this.cur = page
 
             this.render()
         },
@@ -49,7 +53,7 @@ export default {
         render() {
             const showPage = this.showPage
             const total = this.totalPage
-            const cur = this.curPage
+            const cur = this.cur
 
             if (!total || !cur) {
                 this.range = []
