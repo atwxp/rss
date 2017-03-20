@@ -57,6 +57,7 @@ export default {
             this.loading = false
 
             this.allPost = post
+
             this.totalPage = Math.ceil(this.allPost.length / this.perPage)
         },
 

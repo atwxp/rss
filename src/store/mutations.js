@@ -16,9 +16,9 @@ export default {
         ls.set('feeds', state.feedList)
     },
 
-    [types.UPDATE_CONFIG] (state, cfg, save = true) {
+    [types.UPDATE_CONFIG] (state, cfg) {
         Object.assign(state.config, cfg)
 
-        save && ls.set('config', state.config)
+        ls.set('config', state.config)
     }
 }
