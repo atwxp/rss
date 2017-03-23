@@ -20,5 +20,12 @@ export default {
         Object.assign(state.config, cfg)
 
         ls.set('config', state.config)
+    },
+
+    [types.SET_FEEDLIST] (state, rss) {
+        ls.set(rss.id, {
+            list: rss.items,
+            _t: +new Date()
+        })
     }
 }

@@ -4,11 +4,12 @@
 
     <p class="meta">
         <span class="author">{{rss.creator}}</span>
+
         <span class="date">{{rss.pubDate|normalizeDate}}</span>
-        <span class="cat"></span>
     </p>
 
     <div class="feed-content" v-if="rss.summary" v-html="rss.summary"></div>
+
     <div class="feed-content" v-if="!rss.summary" v-html="rss.article"></div>
 
     <div class="share">
@@ -26,7 +27,7 @@ export default {
         rss: {
             type: Object,
 
-            default: function () {
+            default() {
                 return {}
             }
         }
@@ -35,6 +36,7 @@ export default {
     computed: {
         weibourl() {
             const url = encodeURIComponent(this.rss.link)
+
             const title = encodeURIComponent(this.rss.title)
 
             return `http://service.weibo.com/share/share.php?url=${url}&title=${title}&pic=&appkey=`
@@ -42,6 +44,7 @@ export default {
 
         evernoteurl() {
             const url = encodeURIComponent(this.rss.link)
+
             const title = encodeURIComponent(this.rss.title)
 
             return `http://app.yinxiang.com/clip.action?url=${url}&title=${title}`
@@ -59,8 +62,7 @@ export default {
         margin-bottom: 20px;
         font-size: 12px;
         color: #999;
-        .date,
-        .cat {
+        .date {
             margin-left: 10px;
         }
     }

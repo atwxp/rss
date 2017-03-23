@@ -2,7 +2,6 @@
  * @file   util tool
  * @author wxp201013@163.com
  */
-import Vue from 'vue'
 
 export function gid() {
     return 'xxxxxxxx'.replace(/x/g, function (v) {
@@ -16,6 +15,23 @@ export function parse(str) {
     }
     catch (e) {
         return str
+    }
+}
+
+export function parseurl(url) {
+    if (!url) {
+        return {}
+    }
+
+    const params = url.split('://')
+
+    const protocal = params[0] + ':'
+
+    const host = params[1].split(/\/\/?/)[0]
+
+    return {
+        protocal,
+        host
     }
 }
 
@@ -73,7 +89,7 @@ export function parseOPML(opml) {
     return ret
 }
 
-export function parseRSS(xml) {
+export function parseRSS(xml, feedUrl) {
     if (!(xml instanceof XMLDocument)) {
         const parser = new DOMParser()
 
@@ -81,6 +97,7 @@ export function parseRSS(xml) {
     }
 
     const xmlbody = xml.getElementsByTagName('channel')[0]
+
     if (!xmlbody) {
         return
     }
@@ -89,7 +106,9 @@ export function parseRSS(xml) {
     // attr.name: 'xmlns:atom'
     // attr.localName: atom
     const xmlroot = xml.getElementsByTagName('rss')[0]
+
     const ns = {xmlns: null}
+
     Array.from(xmlroot.attributes).forEach(attr => {
         if (/^xmlns:?(\w+)?/.test(attr.name)) {
             ns[attr.localName] = attr.value
@@ -97,11 +116,36 @@ export function parseRSS(xml) {
     })
 
     const rss = Object.assign({items: []}, getNodeContent(xmlbody, ['title', 'link'], ns))
+
+    const urlObj = parseurl(feedUrl)
+
+    let blogLink = rss.link
+
+    if (/^\/\//.test(blogLink)) {
+        blogLink = urlObj.protocal + blogLink
+    }
+
+    else if (blogLink === '/') {
+        blogLink = urlObj.protocal + '//' + urlObj.host
+    }
+
+    blogLink += blogLink.slice(-1) !== '/' ? '/' : ''
+
     for (const item of xmlbody.getElementsByTagName('item')) {
         const info = getNodeContent(item, ['title', 'link', 'pubDate', 'description', 'dc:creator', 'content:encoded'], ns)
 
+        let articleLink = info.link
+
+        if (/^\/\//.test(articleLink)) {
+            articleLink = urlObj.protocal + articleLink
+        }
+
+        else if (/^\//.test(articleLink)) {
+             articleLink = blogLink + articleLink.slice(1)
+        }
+
         rss.items.push({
-            link: info.link,
+            link:  articleLink,
 
             title: info.title,
 
@@ -119,13 +163,15 @@ export function parseRSS(xml) {
 }
 
 // https://validator.w3.org/feed/docs/atom.html
-export function parseAtom(xml) {
+export function parseAtom(xml, feedUrl) {
     if (!(xml instanceof XMLDocument)) {
         const parser = new DOMParser()
+
         xml = parser.parseFromString(xml, 'text/xml')
     }
 
     const xmlroot = xml.getElementsByTagName('feed')[0]
+
     if (!xmlroot) {
         return
     }
@@ -134,6 +180,7 @@ export function parseAtom(xml) {
     // attr.name: 'xmlns:atom'
     // attr.localName: atom
     const ns = {xmlns: null}
+
     Array.from(xmlroot.attributes).forEach(attr => {
         if (/^xmlns:?(\w+)?/.test(attr.name)) {
             ns[attr.localName] = attr.value
@@ -143,10 +190,28 @@ export function parseAtom(xml) {
     // 获取xmlroot本身的信息
     const author = xmlroot.getElementsByTagName('author')[0]
     const xmlrootInfo = getNodeContent(xmlroot, ['id', 'title'], ns)
+
+    let blogLink = xmlrootInfo.id
+
+    const urlObj = parseurl(feedUrl)
+
+    if (/^\/\//.test(blogLink)) {
+        blogLink = urlObj.protocal + blogLink
+    }
+
+    else if (blogLink === '/') {
+        blogLink = urlObj.protocal + '//' + urlObj.host
+    }
+
+    blogLink += blogLink.slice(-1) !== '/' ? '/' : ''
+
     const rss = {
         items: [],
-        link: xmlrootInfo.id,
+
+        link: blogLink,
+
         title: xmlrootInfo.title,
+
         author: author && (author.getElementsByTagName('name')[0] || {}).textContent
     }
 
@@ -155,10 +220,21 @@ export function parseAtom(xml) {
         const info = getNodeContent(entry, ['title', 'id', 'published', 'updated', 'summary', 'content'], ns)
 
         let author = entry.getElementsByTagName('author')[0]
+
         author = author && (author.getElementsByTagName('name')[0] || {}).textContent
 
+        let articleLink = info.id
+
+        if (/^\/\//.test(articleLink)) {
+            articleLink = urlObj.protocal + articleLink
+        }
+
+        else if (/^\//.test(articleLink)) {
+             articleLink = blogLink + articleLink.slice(1)
+        }
+
         rss.items.push({
-            link: info.id,
+            link: articleLink,
 
             title: info.title,
 
@@ -176,7 +252,8 @@ export function parseAtom(xml) {
 }
 
 // https://validator.w3.org/feed/docs/
-export function parseFeed(xml) {
+// 传入 feedUrl 因为有写 xml 的id 比如 <id>//litten.me/</id> 都是相对地址，和chrome extension协议不一样
+export function parseFeed(xml, feedUrl) {
     const parser = new DOMParser()
 
     xml = parser.parseFromString(xml, 'application/xml')
@@ -184,10 +261,10 @@ export function parseFeed(xml) {
     const atom = xml.getElementsByTagName('feed')[0]
 
     if (atom && /atom/i.test(atom.getAttribute('xmlns'))) {
-        return parseAtom(xml)
+        return parseAtom(xml, feedUrl)
     }
     else {
-        return parseRSS(xml)
+        return parseRSS(xml, feedUrl)
     }
 }
 
@@ -205,37 +282,4 @@ export function encodeHTML(str) {
     }
 
     return str.replace(/[&><"']/g, m => code[m])
-}
-
-export function fetchFeed(url) {
-    return new Promise((resolve, reject) => {
-        Vue.http.get(url).then(response => {
-            if (!response.ok) {
-                reject(response.statusText)
-            }
-
-            if (typeof response.body === 'string') {
-                const rss = parseFeed(response.body)
-
-                rss ? resolve(rss) : reject()
-            }
-            else {
-                const reader = new FileReader()
-
-                reader.onload = function (e) {
-                    const rss = parseFeed(e.target.result)
-
-                    rss ? resolve(rss) : reject()
-                }
-
-                reader.onerror = function () {
-                    reject()
-                }
-
-                reader.readAsText(response.body)
-            }
-        }, err => {
-            reject(err)
-        })
-    })
 }

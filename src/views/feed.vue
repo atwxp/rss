@@ -5,30 +5,29 @@
     <div v-show="post">
         <feed-item v-for="r in post" :rss="r" :key="r.id"></feed-item>
 
-        <v-pager :total-page="totalPage" v-on:pagechange="pagechange"></v-pager>
+        <v-pager :total-page="totalPage" :init-page="initPage" v-on:pagechange="pagechange"></v-pager>
     </div>
 </div>
 </template>
 
 <script>
-import * as util from 'util/index'
-import * as ls from 'util/localstorage'
-
 import FeedItem from 'components/feed-item'
 import VPager from 'components/v-pager'
 
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
     data() {
         return {
             loading: false,
 
-            post: null,
+            allPost: [],
 
-            allPost: null,
+            post: [],
 
-            totalPage: 0
+            totalPage: 0,
+
+            initPage: 0
         }
     },
 
@@ -39,7 +38,9 @@ export default {
         }),
 
         ...mapGetters([
-            'feedList'
+            'feedList',
+            'getFeedById',
+            'getFeedFromCache'
         ])
     },
 
@@ -53,31 +54,40 @@ export default {
     },
 
     methods: {
+        ...mapActions([
+            'fetchFeedList'
+        ]),
+
         setPost(post) {
             this.loading = false
 
             this.allPost = post
 
+            this.initPage = 1
+
             this.totalPage = Math.ceil(this.allPost.length / this.perPage)
+
+            this.pagechange(this.initPage)
         },
 
         fetchData() {
-            this.post = null
+            this.post = []
             this.loading = true
-            this.allPost = null
+            this.allPost = []
             this.totalPage = 0
 
             const me = this
+
             const id = this.$route.params.id
 
-            const feed = this.feedList.filter(fl => fl.id === id)[0]
+            const feed = this.getFeedById(id)
 
             if (!feed) {
                 return alert('不存在该feed id')
             }
 
             // 检查缓存
-            const cacheFeed = ls.get(feed.id)
+            const cacheFeed = this.getFeedFromCache(id)
             if (
                 cacheFeed && cacheFeed.list && cacheFeed.list.length
                 && +new Date() < this.expired * 24 * 60 * 60 * 1000 + cacheFeed._t
@@ -85,15 +95,8 @@ export default {
                 this.setPost(cacheFeed.list)
             }
             else {
-                util.fetchFeed(feed.url).then(rss => {
-
+                this.fetchFeedList([feed.url, id]).then(rss => {
                     me.setPost(rss.items)
-
-                    ls.set(feed.id, {
-                        list: rss.items,
-                        _t: +new Date()
-                    })
-
                 }).catch(err => {
                     console.log(err)
                 })

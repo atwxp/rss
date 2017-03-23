@@ -16,8 +16,8 @@ export default {
             default: 0
         },
 
-        curPage: {
-            type: Number,
+        initPage: {
+            type: [Number, String],
             default: 1
         },
 
@@ -29,14 +29,23 @@ export default {
 
     data() {
         return {
-            cur: this.curPage,
+            cur: 1,
             range: []
         }
     },
 
     watch: {
+        initPage(v) {
+            this.cur = parseInt(v, 10)
+        },
+
         totalPage() {
             this.cur = 1
+        },
+
+        cur() {
+            this.$emit('pagechange', this.cur)
+
             this.render()
         }
     },
@@ -46,8 +55,6 @@ export default {
             e && e.preventDefault()
 
             this.cur = page
-
-            this.render()
         },
 
         render() {
@@ -124,11 +131,9 @@ export default {
             })
 
             this.range = range
-
-            this.$emit('pagechange', cur)
         }
     },
-
+ 
     created() {
         this.render()
     }

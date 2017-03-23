@@ -36,7 +36,8 @@ export default {
 
     methods: {
         ...mapActions([
-            'addFeed'
+            'addFeed',
+            'fetchFeedList'
         ]),
 
         addRSS() {
@@ -57,21 +58,16 @@ export default {
             }
 
             else {
-                util.fetchFeed(feed).then(rss => {
-                    me.addFeed({
-                        id: util.gid(),
+                this.fetchFeedList(feed).then(rss => {
+                    delete rss.items
 
-                        url: feed,
-
-                        link: rss.link,
-
-                        title: rss.title
-                    })
+                    me.addFeed(rss)
 
                     me.feed = ''
 
                     alert('订阅成功')
-                }).catch(err => {
+                })
+                .catch(err => {
                     console.log('fetch err')
                 })
             }

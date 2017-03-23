@@ -23,11 +23,6 @@ export default {
             default: ''
         },
 
-        feed: {
-            type: [String],
-            default: ''
-        },
-
         hasDel: {
             type: [Boolean],
             default: false

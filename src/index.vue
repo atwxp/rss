@@ -17,7 +17,7 @@
             </p>
 
             <ul v-bind:class="edit ? 'edit' : ''">
-                <li v-for="(f, k) in feedList" :key="k">
+                <li v-for="(f, index) in feedList" :key="index">
                     <nav-item :path="'/feed/' + f.id" :text="f.title" hasDel v-on:delfeed="deleteFeed(f.id)"></nav-item>
                 </li>
             </ul>

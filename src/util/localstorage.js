@@ -8,7 +8,7 @@ const support = !!(storage && storage.getItem)
 // ios 无痕浏览, localStorage可以读, 但是不可以写&删除
 const available = (function () {
     try {
-        storage.setItem('_t', ' ')
+        storage.setItem('_h', ' ')
     }
     catch (e) {
         return false

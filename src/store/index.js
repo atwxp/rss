@@ -16,6 +16,7 @@ const state = {
         perPage: config.perPage || 5,
         expired: config.expired || 1
     },
+
     feedList: get('feeds') || []
 }
 
