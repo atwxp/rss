@@ -2,6 +2,7 @@
   "name": "rss",
   "scripts": {
     "build": "rm -rf output && webpack --progress --colors",
+    "crx": "npm run build && rm -f *.crx *.pem && node ./node_modules/crx/bin/crx pack output -p rss.pem -o rss.crx",
     "start": "webpack-dev-server --open",
     "lint": "fecs src/ --type=js"
   },
@@ -13,6 +14,7 @@
     "babel-preset-stage-2": "^6.22.0",
     "babel-runtime": "^5.8.38",
     "copy-webpack-plugin": "^4.0.1",
+    "crx": "^3.2.1",
     "css-loader": "^0.16.0",
     "extract-text-webpack-plugin": "^2.1.0",
     "file-loader": "^0.10.1",

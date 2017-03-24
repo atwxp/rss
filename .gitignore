@@ -1,4 +1,5 @@
 node_modules
 output/
-output*
+*.crx
+*.pem
 .DS_Store

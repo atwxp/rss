@@ -58,7 +58,7 @@ export default {
             }
 
             else {
-                this.fetchFeedList(feed).then(rss => {
+                this.fetchFeedList([feed]).then(rss => {
                     delete rss.items
 
                     me.addFeed(rss)
