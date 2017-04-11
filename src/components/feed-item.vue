@@ -10,8 +10,6 @@
 
     <div class="feed-content" v-if="rss.summary" v-html="rss.summary"></div>
 
-    <div class="feed-content" v-if="!rss.summary" v-html="rss.article"></div>
-
     <div class="share">
         分享到：
         <a href="javascript:;" class="link share-wechat"></a>

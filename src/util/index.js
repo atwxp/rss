@@ -151,9 +151,7 @@ export function parseRSS(xml, feedUrl) {
 
             pubDate: info.pubDate,
 
-            summary: info.description,
-
-            article: info.content,
+            summary: info.description || info.content,
 
             creator: info.creator
         })
@@ -240,9 +238,7 @@ export function parseAtom(xml, feedUrl) {
 
             pubDate: info.update || info.published,
 
-            summary: info.summary,
-
-            article: info.content,
+            summary: info.summary || info.content,
 
             creator: author || rss.author
         })
